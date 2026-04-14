@@ -82,6 +82,18 @@
             <div id = list></div>
             <pre id = mats></pre>
 
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <input type="text" id="baseName" placeholder="Nome da base..." style="padding: 6px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px;">
+                
+                <button id="btnExport" style="padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Salvar Materiais (.txt)</button>
+                
+                <div style="display: flex; gap: 8px;">
+                    <button id="btnSave" style="flex: 1; padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Salvar Projeto</button>
+                    <button id="btnLoad" style="flex: 1; padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Carregar</button>
+                </div>
+                <input type="file" id="fileInput" accept=".json" style="display: none;">
+            </div>
+
             <section>
                 Calculate the materials cost to build structures in Mystera Legacy &middot; <span>Made by GreyHope</span> 
             </section>
@@ -501,6 +513,62 @@
 }));
 
                 worker.onmessage = e => mats.textContent = e.data
+                // Referências dos novos elementos
+                const baseName = document.getElementById("baseName");
+                const btnExport = document.getElementById("btnExport");
+                const btnSave = document.getElementById("btnSave");
+                const btnLoad = document.getElementById("btnLoad");
+                const fileInput = document.getElementById("fileInput");
+
+                // Sistema 1: Salvar lista de materiais como .txt
+                btnExport.onclick = () => {
+                    const text = `Projeto: ${baseName.value || "Sem Nome"}\n\nMateriais Necessários:\n${mats.textContent}`;
+                    const blob = new Blob([text], { type: "text/plain" });
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(blob);
+                    a.download = (baseName.value || "materiais") + ".txt";
+                    a.click();
+                };
+
+                // Sistema 2: Salvar projeto inteiro como .json para editar depois
+                btnSave.onclick = () => {
+                    const data = JSON.stringify({ name: baseName.value, build, floor });
+                    const blob = new Blob([data], { type: "application/json" });
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(blob);
+                    a.download = (baseName.value || "projeto_base") + ".json";
+                    a.click();
+                };
+
+                // Sistema 3: Carregar projeto salvo
+                btnLoad.onclick = () => fileInput.click();
+
+                fileInput.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            baseName.value = data.name || "";
+                            
+                            // Limpa o mapa atual e insere os dados carregados
+                            Object.keys(build).forEach(k => delete build[k]);
+                            Object.keys(floor).forEach(k => delete floor[k]);
+                            Object.assign(build, data.build || {});
+                            Object.assign(floor, data.floor || {});
+                            
+                            // Atualiza os cálculos e a tela
+                            worker.postMessage({floor, build});
+                            render();
+                        } catch (err) {
+                            alert("Erro ao carregar o arquivo do projeto.");
+                        }
+                    };
+                    reader.readAsText(file);
+                    fileInput.value = ""; // Reseta o input para permitir carregar o mesmo arquivo novamente se necessário
+                };
                 canvas.oncontextmenu = e => e.preventDefault()
                 tiles.src = "map.png"
 
