@@ -208,6 +208,10 @@
             scrollbar-color: #444 transparent;
         }
 
+        .cat-section {
+            margin-bottom: 8px;
+        }
+
         .cat-label {
             display: flex;
             justify-content: space-between;
@@ -221,26 +225,37 @@
             border: 1px solid #333;
             border-radius: 4px;
             padding: 6px 8px;
-            margin: 8px 0 4px 0;
             cursor: pointer;
             user-select: none;
-            grid-column: 1 / -1;
+            transition: all 0.2s;
         }
 
-        .cat-label:hover { color: #ccc; border-color: #5af; }
-        .cat-label .toggle { font-size: 12px; font-weight: bold; }
+        .cat-label:hover { 
+            color: #ccc; 
+            border-color: #5af; 
+        }
 
-        .cat-group {
+        .cat-label .toggle { 
+            font-size: 12px; 
+            font-weight: bold;
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+        }
+
+        .cat-grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
             gap: 4px;
-            margin-bottom: 8px;
+            margin-top: 4px;
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
         }
 
-        .cat-label.collapsed ~ .cat-group { display: none; }
-
-        #list {
-            display: contents;
+        .cat-grid.collapsed {
+            max-height: 0;
+            margin-top: 0;
         }
 
         #list .item-btn {
@@ -417,48 +432,48 @@
             <h1>Mystera Legacy<br>Base Planner</h1>
             <div class="credits">Coded by GreyHope / Updated by Darot</div>
             <div class="description">
-                <strong>O que é?</strong><br>
-                Um planejador de bases para Mystera Legacy que calcula automaticamente o custo em materiais de suas construções.<br><br>
+                <strong>What is it?</strong><br>
+                A base planner for Mystera Legacy that automatically calculates the cost in materials for your constructions.<br><br>
 
-                <strong>Como usar?</strong><br>
-                1. Selecione um item na esquerda<br>
-                2. Clique esquerdo para colocar<br>
-                3. Clique direito para remover<br>
-                4. Shift + clique para preencher linhas/retângulos<br>
-                5. Shift + Alt + clique para apagar em padrão<br><br>
+                <strong>How to use?</strong><br>
+                1. Select an item on the left<br>
+                2. Left click to place<br>
+                3. Right click to remove<br>
+                4. Shift + click to fill lines/rectangles<br>
+                5. Shift + Alt + click to erase pattern<br><br>
 
-                <strong>Salvando seu projeto?</strong><br>
-                • Nomeie seu projeto no campo de texto<br>
-                • Use "💾 Save" para salvar como .json editável<br>
-                • Use "📂 Load" para carregar projeto anterior<br>
-                • Use "Export" para gerar imagem ou texto<br><br>
+                <strong>Saving your project?</strong><br>
+                • Name your project in the text field<br>
+                • Use "💾 Save" to save as editable .json<br>
+                • Use "📂 Load" to load previous project<br>
+                • Use "Export" to generate image or text<br><br>
 
-                Aproveite bem o planejador! 🎮
+                Enjoy the planner! 🎮
             </div>
             <div class="checkbox-wrapper">
                 <input type="checkbox" id="dontShowAgain" onchange="toggleDontShowAgain()">
-                <label for="dontShowAgain">Não mostrar novamente</label>
+                <label for="dontShowAgain">Do not show again</label>
             </div>
             <div class="btn-group">
-                <button class="close-btn" onclick="closeModal()">Fechar</button>
+                <button class="close-btn" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
 
     <div id="tooltip"></div>
     <div class="export-popup" id="export-popup">
-        <button onclick="exportProject('jpg-full')">📷 JPG Completo (com legenda)</button>
-        <button onclick="exportProject('jpg-image')">🖼️ Apenas Imagem (sem legenda)</button>
-        <button onclick="exportProject('txt')">📄 Lista de Materiais</button>
+        <button onclick="exportProject('jpg-full')">📷 Full JPG (with legend)</button>
+        <button onclick="exportProject('jpg-image')">🖼️ Image only (no legend)</button>
+        <button onclick="exportProject('txt')">📄 Materials list</button>
     </div>
 
     <div id="left">
         <div id="panel-header">
             <div>
                 <h2>Mystera Legacy — Base Planner</h2>
-                <p>Clique esquerdo coloca · Direito apaga · Shift preenche</p>
+                <p>Left click place · Right click erase · Shift fill</p>
             </div>
-            <button id="btnHelp" onclick="showModal()" title="Ver tutorial">?</button>
+            <button id="btnHelp" onclick="showModal()" title="View tutorial">?</button>
         </div>
 
         <div id="list-wrap">
@@ -477,7 +492,7 @@
             </div>
 
             <div id="save-section">
-                <input type="text" id="baseName" placeholder="Nome do projeto...">
+                <input type="text" id="baseName" placeholder="Project name...">
                 <div class="btn-row">
                     <button class="btn accent" id="btnSave">💾 Save</button>
                     <button class="btn" id="btnLoad">📂 Load</button>
@@ -496,7 +511,7 @@
 
     <script>
         // ════════════════════════════════════════════════════════════
-        // ANIMAL ORIENTATION SYSTEM - CACHE E CONFIGURAÇÃO
+        // ANIMAL ORIENTATION SYSTEM - CACHE AND CONFIGURATION
         // ════════════════════════════════════════════════════════════
         const animalSpriteCache = {};
 
@@ -589,12 +604,9 @@
         ];
 
         // ════════════════════════════════════════════════════════════
-        // FUNÇÕES DE ORIENTAÇÃO DE ANIMAIS
+        // ANIMAL ORIENTATION FUNCTIONS
         // ════════════════════════════════════════════════════════════
 
-        /**
-         * Encontra o Animal Gate mais próximo
-         */
         function findNearestAnimalGate(x, y, buildData) {
             const gates = Object.entries(buildData).filter(([, v]) => v.name === "Animal Gate");
             
@@ -616,9 +628,6 @@
             return nearestGate;
         }
 
-        /**
-         * Calcula a direção do animal baseado na posição do gate
-         */
         function getAnimalDirection(animalX, animalY, gateX, gateY) {
             const dx = gateX - animalX;
             const dy = gateY - animalY;
@@ -633,9 +642,6 @@
             }
         }
 
-        /**
-         * Obtém o índice do frame baseado na direção
-         */
         function getAnimalFrameIndex(animalData, direction = "down") {
             if (!animalData.directions) return 0;
             
@@ -644,9 +650,6 @@
             return dirFrames[frameTime];
         }
 
-        /**
-         * Carrega sprite de animal
-         */
         async function loadAnimalSprite(url) {
             if (animalSpriteCache[url]) {
                 return animalSpriteCache[url];
@@ -660,16 +663,13 @@
                     resolve(img);
                 };
                 img.onerror = () => {
-                    console.warn(`Falha ao carregar sprite: ${url}`);
+                    console.warn(`Failed to load sprite: ${url}`);
                     resolve(null);
                 };
                 img.src = url;
             });
         }
 
-        /**
-         * Renderiza animal em canvas context
-         */
         function renderAnimalToCanvas(ctx, animalData, frameIndex, x, y) {
             const spriteImg = animalSpriteCache[animalData.spriteUrl];
             if (!spriteImg) return;
@@ -692,7 +692,7 @@
         }
 
         // ════════════════════════════════════════════════════════════
-        // FUNÇÕES DO MODAL
+        // MODAL FUNCTIONS
         // ════════════════════════════════════════════════════════════
 
         function showModal() {
@@ -721,7 +721,7 @@
         }
 
         // ════════════════════════════════════════════════════════════
-        // APLICAÇÃO PRINCIPAL
+        // MAIN APPLICATION
         // ════════════════════════════════════════════════════════════
 
         const TILE = 16;
@@ -1013,7 +1013,7 @@
                     }
                 }
 
-                // ✨ RENDERIZAR ANIMAIS COM ORIENTAÇÃO
+                // ✨ RENDER ANIMALS WITH ORIENTATION
                 const animals = Object.entries(build).filter(([, v]) => v.animal);
                 animals.forEach(([key, animal]) => {
                     const [ax, ay] = key.split(" ").map(Number);
@@ -1110,14 +1110,14 @@ ${document.getElementById("baseName").value || "Unnamed Base"}
 ═══════════════════════════════════════════
 
 Base Size: ${sizeText}
-Data: ${now}
+Date: ${now}
 
 ───────────────────────────────────────────
-This is a materials calculator for Mystera Legacy
+Materials calculator for Mystera Legacy
 Coded by GreyHope / Updated by Darot
 ───────────────────────────────────────────
 
-MATERIAIS NECESSÁRIOS:
+MATERIALS REQUIRED:
 
 ${mats}
 
@@ -1345,60 +1345,73 @@ ${mats}
                 render();
             };
 
-            let currentCat = "";
             const tooltip = document.getElementById("tooltip");
-            const catStates = {};
+            const categoryCollapsed = {};
 
             BUILD.forEach(item => {
-                if (item.cat && !catStates.hasOwnProperty(item.cat)) {
-                    catStates[item.cat] = true;
+                if (item.cat && !categoryCollapsed.hasOwnProperty(item.cat)) {
+                    categoryCollapsed[item.cat] = true;
                 }
             });
 
-            list.append(...BUILD.flatMap(item => {
-                const els = [];
-
-                if (item.cat && item.cat !== currentCat) {
-                    currentCat = item.cat;
-
-                    const label = document.createElement("div");
-                    label.className = "cat-label" + (catStates[currentCat] ? " collapsed" : "");
-                    label.innerHTML = `${currentCat}<span class="toggle">${catStates[currentCat] ? "+" : "−"}</span>`;
-                    label.addEventListener("click", () => {
-                        catStates[currentCat] = !catStates[currentCat];
-                        label.classList.toggle("collapsed");
-                        label.querySelector(".toggle").textContent = catStates[currentCat] ? "+" : "−";
-                    });
-                    els.push(label);
+            const groupedByCategory = {};
+            BUILD.forEach(item => {
+                if (!groupedByCategory[item.cat]) {
+                    groupedByCategory[item.cat] = [];
                 }
+                groupedByCategory[item.cat].push(item);
+            });
 
-                const div = document.createElement("div");
-                div.className = "item-btn";
-                const scale = 1.75;
-                const sx = (item.img || 0) % TILE * TILE * -scale;
-                const sy = Math.floor((item.img || 0) / TILE) * TILE * -scale;
-                div.style.backgroundPosition = `${sx}px ${sy}px`;
-                div.tabIndex = 1;
-                div.title = item.name;
+            Object.entries(groupedByCategory).forEach(([cat, items]) => {
+                const section = document.createElement("div");
+                section.className = "cat-section";
 
-                div.addEventListener("mouseenter", () => {
-                    tooltip.textContent = item.name;
-                    tooltip.style.display = "block";
+                const label = document.createElement("div");
+                label.className = "cat-label" + (categoryCollapsed[cat] ? " collapsed" : "");
+                label.innerHTML = `${cat}<span class="toggle">${categoryCollapsed[cat] ? "+" : "−"}</span>`;
+                
+                const grid = document.createElement("div");
+                grid.className = "cat-grid" + (categoryCollapsed[cat] ? " collapsed" : "");
+
+                items.forEach(item => {
+                    const div = document.createElement("div");
+                    div.className = "item-btn";
+                    const scale = 1.75;
+                    const sx = (item.img || 0) % TILE * TILE * -scale;
+                    const sy = Math.floor((item.img || 0) / TILE) * TILE * -scale;
+                    div.style.backgroundPosition = `${sx}px ${sy}px`;
+                    div.tabIndex = 1;
+                    div.title = item.name;
+
+                    div.addEventListener("mouseenter", () => {
+                        tooltip.textContent = item.name;
+                        tooltip.style.display = "block";
+                    });
+                    div.addEventListener("mousemove", e => {
+                        tooltip.style.left = (e.clientX + 12) + "px";
+                        tooltip.style.top = (e.clientY - 28) + "px";
+                    });
+                    div.addEventListener("mouseleave", () => {
+                        tooltip.style.display = "none";
+                    });
+
+                    div.onfocus = () => state.select = item;
+                    div.onblur = () => delete state.select;
+
+                    grid.appendChild(div);
                 });
-                div.addEventListener("mousemove", e => {
-                    tooltip.style.left = (e.clientX + 12) + "px";
-                    tooltip.style.top = (e.clientY - 28) + "px";
-                });
-                div.addEventListener("mouseleave", () => {
-                    tooltip.style.display = "none";
+
+                label.addEventListener("click", () => {
+                    categoryCollapsed[cat] = !categoryCollapsed[cat];
+                    label.classList.toggle("collapsed");
+                    grid.classList.toggle("collapsed");
+                    label.querySelector(".toggle").textContent = categoryCollapsed[cat] ? "+" : "−";
                 });
 
-                div.onfocus = () => state.select = item;
-                div.onblur = () => delete state.select;
-
-                els.push(div);
-                return els;
-            }));
+                section.appendChild(label);
+                section.appendChild(grid);
+                list.appendChild(section);
+            });
 
             worker.onmessage = e => document.getElementById("mats").textContent = e.data;
 
@@ -1429,29 +1442,11 @@ ${mats}
                         updateSize();
                         render();
                     } catch (err) {
-                        alert("Falha ao carregar projeto.");
+                        alert("Failed to load project.");
                     }
                 };
                 reader.readAsText(file);
                 document.getElementById("fileInput").value = "";
             };
 
-            tiles.src = "map.png";
-
-            setInterval(render, 32);
-        }
-
-        // Pré-carregar sprites de animais
-        const animalsToLoad = ANIMALS_DATA;
-        const animalLoadPromises = animalsToLoad.map(animal => loadAnimalSprite(animal.spriteUrl));
-
-        Promise.all(animalLoadPromises).then(() => {
-            console.log("✓ Animais carregados com sucesso");
-            start();
-        }).catch(() => {
-            console.warn("⚠ Alguns animais não foram carregados, continuando...");
-            start();
-        });
-    </script>
-</body>
-</html>
+            tiles~~*
