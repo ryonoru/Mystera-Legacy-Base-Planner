@@ -7,16 +7,18 @@
         <title>Mystera Legacy Base Planner</title>
 
         <style>
+            *, *::before, *::after { box-sizing: border-box }
+
             html, body {
-                height: 100%
+                height: 100%;
+                margin: 0;
             }
 
             body {
                 font-family: monospace;
                 display: flex;
-                margin: 0;
-                background-color: #222;
-                overflow: hidden
+                background-color: #1a1a1a;
+                overflow: hidden;
             }
 
             canvas {
@@ -24,79 +26,268 @@
                 flex: 1 1 0;
                 image-rendering: crisp-edges;
                 user-select: none;
-                cursor: crosshair
+                cursor: crosshair;
             }
 
-            #mats {
-                color: #ddd;
-                flex: 1 1 0;
-                margin: 0;
-                overflow-y: auto
-            }
-
+            /* ── Left panel ─────────────────────────────── */
             #left {
-                flex: 0 0 0;
-                padding: 1em;
+                width: 260px;
+                flex: 0 0 260px;
                 display: flex;
                 flex-direction: column;
-                gap: 1em
+                gap: 0;
+                background: #242424;
+                border-right: 1px solid #333;
+                overflow: hidden;
+            }
+
+            #panel-header {
+                padding: 10px 12px 8px;
+                background: #1e1e1e;
+                border-bottom: 1px solid #333;
+            }
+
+            #panel-header h2 {
+                margin: 0 0 2px;
+                font-size: 13px;
+                color: #fff;
+                letter-spacing: .5px;
+            }
+
+            #panel-header p {
+                margin: 0;
+                font-size: 10px;
+                color: #666;
+            }
+
+            /* ── Scrollable item list ───────────────────── */
+            #list-wrap {
+                flex: 1 1 0;
+                overflow-y: auto;
+                padding: 8px;
+                scrollbar-width: thin;
+                scrollbar-color: #444 transparent;
+            }
+
+            .cat-label {
+                grid-column: 1 / -1;
+                font-size: 10px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: #aaa;
+                background: #1e1e1e;
+                border: 1px solid #333;
+                border-radius: 4px;
+                padding: 4px 8px;
+                margin: 8px 0 4px;
             }
 
             #list {
-                border-radius: .5em;
-                padding: .5em;
-                background-color: #fff;
                 display: grid;
-                grid-template-columns: repeat(7, 1fr);
-                gap: .5em
+                grid-template-columns: repeat(8, 1fr);
+                gap: 4px;
             }
 
-            #list div {
+            #list .item-btn {
                 cursor: pointer;
-                border-radius: 2px;
+                border-radius: 3px;
                 image-rendering: crisp-edges;
-                width: 16px;
-                height: 16px;
+                width: 28px;
+                height: 28px;
                 background-image: url("map.png");
-                background-size: 256px 128px;
+                background-size: 448px 224px;
+                background-color: #2e2e2e;
+                border: 1px solid #3a3a3a;
+                transition: border-color .1s, background-color .1s;
+                position: relative;
             }
 
-            #list div:focus {
-                outline: 2px solid #07f
+            #list .item-btn:hover,
+            #list .item-btn:focus {
+                outline: none;
+                border-color: #5af;
+                background-color: #1a2a3a;
             }
 
-            section {
+            /* ── Tooltip ────────────────────────────────── */
+            #tooltip {
+                position: fixed;
+                z-index: 999;
+                background: #111;
+                color: #eee;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 3px 8px;
+                font-size: 11px;
+                pointer-events: none;
+                white-space: nowrap;
+                display: none;
+            }
+
+            /* ── Bottom info panel ──────────────────────── */
+            #bottom {
+                flex: 0 0 auto;
+                border-top: 1px solid #333;
+                background: #1e1e1e;
+            }
+
+            /* ── Materials ──────────────────────────────── */
+            #mats-wrap {
+                padding: 8px 10px;
+                border-bottom: 1px solid #2a2a2a;
+            }
+
+            #mats-label {
+                font-size: 10px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: #666;
+                margin-bottom: 4px;
+            }
+
+            #mats {
+                color: #ccc;
+                margin: 0;
+                font-size: 11px;
+                max-height: 90px;
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: #444 transparent;
+            }
+
+            /* ── Base size ──────────────────────────────── */
+            #size-wrap {
+                padding: 6px 10px;
+                border-bottom: 1px solid #2a2a2a;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            #size-label {
+                font-size: 10px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: #666;
+                white-space: nowrap;
+            }
+
+            #size-val {
                 font-size: 12px;
-                color: #888;
-                word-break: break-all
+                color: #7df;
             }
 
-            span {
-                color: #fff
+            /* ── Save / Load section ────────────────────── */
+            #save-section {
+                padding: 8px 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
             }
+
+            #baseName {
+                padding: 5px 8px;
+                font-family: monospace;
+                font-size: 11px;
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                border-radius: 4px;
+                color: #eee;
+                outline: none;
+                width: 100%;
+            }
+
+            #baseName:focus {
+                border-color: #5af;
+            }
+
+            .btn-row {
+                display: flex;
+                gap: 5px;
+            }
+
+            .btn {
+                flex: 1;
+                padding: 5px 6px;
+                font-family: monospace;
+                font-size: 10px;
+                cursor: pointer;
+                border-radius: 4px;
+                border: 1px solid #3a3a3a;
+                background: #2e2e2e;
+                color: #ccc;
+                transition: background .15s, color .15s, border-color .15s;
+            }
+
+            .btn:hover {
+                background: #3a3a3a;
+                color: #fff;
+                border-color: #5af;
+            }
+
+            .btn.accent {
+                background: #1a3050;
+                border-color: #2a5080;
+                color: #7df;
+            }
+
+            .btn.accent:hover {
+                background: #1e3d66;
+                border-color: #5af;
+                color: #aef;
+            }
+
+            /* ── Footer ─────────────────────────────────── */
+            #footer {
+                padding: 5px 10px;
+                font-size: 9px;
+                color: #444;
+                border-top: 1px solid #2a2a2a;
+            }
+
+            #footer span { color: #666 }
         </style>
     </head>
 
     <body>
-        <div id = left>
-            <div id = list></div>
-            <pre id = mats></pre>
+        <div id="tooltip"></div>
 
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <input type="text" id="baseName" placeholder="Nome da base..." style="padding: 6px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px;">
-                
-                <button id="btnExport" style="padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Salvar Materiais (.txt)</button>
-                
-                <div style="display: flex; gap: 8px;">
-                    <button id="btnSave" style="flex: 1; padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Salvar Projeto</button>
-                    <button id="btnLoad" style="flex: 1; padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Carregar</button>
-                </div>
-                <input type="file" id="fileInput" accept=".json" style="display: none;">
+        <div id="left">
+            <div id="panel-header">
+                <h2>Mystera Legacy — Base Planner</h2>
+                <p>Click to select · Left click place · Right click erase</p>
             </div>
 
-            <section>
-                Calculate the materials cost to build structures in Mystera Legacy &middot; <span>Made by GreyHope</span> 
-            </section>
+            <div id="list-wrap">
+                <div id="list"></div>
+            </div>
+
+            <div id="bottom">
+                <div id="mats-wrap">
+                    <div id="mats-label">Materials</div>
+                    <pre id="mats"></pre>
+                </div>
+
+                <div id="size-wrap">
+                    <div id="size-label">Base Size</div>
+                    <div id="size-val">—</div>
+                </div>
+
+                <div id="save-section">
+                    <input type="text" id="baseName" placeholder="Project name...">
+                    <div class="btn-row">
+                        <button class="btn accent" id="btnSave">💾 Save</button>
+                        <button class="btn" id="btnLoad">📂 Load</button>
+                        <button class="btn" id="btnExport">📄 Export .txt</button>
+                    </div>
+                    <input type="file" id="fileInput" accept=".json" style="display:none">
+                </div>
+
+                <div id="footer">
+                    Materials calculator for Mystera Legacy · <span>Made by GreyHope</span>
+                </div>
+            </div>
         </div>
 
         <canvas></canvas>
@@ -105,99 +296,95 @@
             const TILE = 16
 
             const BUILD = [
-                {spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}},
-                {spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}},
+                // ── Structures ──────────────────────────────────────────
+                {cat: "Structures", name: "Stone Tower",    spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}, wall: true},
+                {cat: "Structures", name: "Bone Tower",     spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}, wall: true},
+                {cat: "Structures", name: "Stone Wall",     spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}, wall: true},
+                {cat: "Structures", name: "Wood Wall",      spr: 26, img: 26, height: 2, build: true, mats: {wood: 20}, wall: true},
+                {cat: "Structures", name: "Chimney",        spr: 43, img: 43, alt: true, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
+                {cat: "Structures", name: "Statue",         spr: 61, img: 61, build: true, mats: {stone: 400, silver: 10}},
+                {cat: "Structures", name: "Anvil",          spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
+                {cat: "Structures", name: "Forge",          spr: 62, img: 62, build: true, mats: {stone: 250, clay: 150, charcoal: 8, silver: 10}},
+                {cat: "Structures", name: "Workbench",      spr: 63, img: 63, build: true, mats: {wood: 30, silver: 5, hide: 6}},
+                {cat: "Structures", name: "Door (Wood)",    spr: 40, img: 40, build: true, door: true, mats: {wood: 20}},
+                {cat: "Structures", name: "Door (Stone)",   spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
+                {cat: "Structures", name: "Door (Silver)",  spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
+                {cat: "Structures", name: "Door (Gold)",    spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
+                {cat: "Structures", name: "Totem",          spr: 77, img: 77, build: true, mats: {stone: 20, wood: 4, flint: 4, charcoal: 4}},
+                {cat: "Structures", name: "Well",           spr: 8, img: 8, build: true, mats: {stone: 100, clay: 20, gold: 1}},
+                {cat: "Structures", name: "Portal",         spr: 24, img: 24, build: true, mats: {escape_lantern: 1, dragon_scale: 1, gold: 10}},
+                {cat: "Structures", name: "Trap",           spr: 78, img: 78, anim: true, off: 4, build: true, mats: {bronze: 20, flint: 5, gold: 5}},
 
-                {spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}},
-                {spr: 26, img: 26, height: 2, build: true, mats: {wood: 20}},
+                // ── Furniture ───────────────────────────────────────────
+                {cat: "Furniture", name: "Candelabra",      spr: 58, img: 42, height: 2, build: true, mats: {wood: 50, tinder: 20, red_dye: 1}},
+                {cat: "Furniture", name: "Torch",           spr: 59, img: 59, build: true, mats: {wood: 20}},
+                {cat: "Furniture", name: "Bed",             spr: 113, img: 81, height: 3, build: true, mats: {wood: 20, feather: 4, wool: 4}},
+                {cat: "Furniture", name: "Chair",           spr: 60, img: 60, build: true, mats: {wood: 20}},
+                {cat: "Furniture", name: "Stool",           spr: 80, img: 80, build: true, mats: {wood: 10}},
+                {cat: "Furniture", name: "Bookshelf",       spr: 96, img: 96, build: true, mats: {wood: 200, gold: 5}},
+                {cat: "Furniture", name: "Cabinet",         spr: 112, img: 112, build: true, mats: {wood: 200, gold: 5}},
+                {cat: "Furniture", name: "Chest",           spr: 41, img: 41, build: true, mats: {wood: 50, silver: 10, gold: 5}},
+                {cat: "Furniture", name: "Wall Segment A",  spr: 82, img: 82, build: true, mats: {}},
+                {cat: "Furniture", name: "Wall Segment B",  spr: 83, img: 83, build: true, mats: {}},
+                {cat: "Furniture", name: "Wall Segment C",  spr: 98, img: 98, build: true, mats: {}},
+                {cat: "Furniture", name: "Wall Segment D",  spr: 99, img: 99, build: true, mats: {}},
+                {cat: "Furniture", name: "Wall Segment E",  spr: 114, img: 114, build: true, mats: {}},
+                {cat: "Furniture", name: "Wall Segment F",  spr: 115, img: 115, build: true, mats: {}},
+                {cat: "Furniture", name: "Misc Item",       spr: 123, img: 123, build: true, mats: {}},
 
-                {spr: 43, img: 43, alt: true, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
+                // ── Floors & Roads ──────────────────────────────────────
+                {cat: "Floors & Roads", name: "Grass",      spr: 2, img: 2, mats: {}},
+                {cat: "Floors & Roads", name: "Stone Road", spr: 3, img: 3, block: true, mats: {stone: 5, clay: 1}},
+                {cat: "Floors & Roads", name: "Stone Floor",spr: 4, img: 4, block: true, mats: {stone: 20}},
+                {cat: "Floors & Roads", name: "Clay Road",  spr: 5, img: 5, mats: {clay: 5}},
+                {cat: "Floors & Roads", name: "Wood Floor", spr: 6, img: 6, mats: {wood: 10}},
+                {cat: "Floors & Roads", name: "Dirt Path",  spr: 7, img: 7, mats: {stone: 15}},
+                {cat: "Floors & Roads", name: "Water",      spr: 21, img: 21, anim: true, block: true, mats: {}},
+                {cat: "Floors & Roads", name: "Rock",       spr: 23, img: 23, block: true, mats: {}},
 
-                {spr: 77, img: 77, build: true, mats: {stone: 20, wood: 4, flint: 4, charcoal: 4}},
-                {spr: 82, img: 82, build: true, mats: {}},
-                {spr: 83, img: 83, build: true, mats: {}},
-                {spr: 98, img: 98, build: true, mats: {}},
-                {spr: 99, img: 99, build: true, mats: {}},
-                {spr: 114, img: 114, build: true, mats: {}},
-                {spr: 115, img: 115, build: true, mats: {}},
-                {spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
+                // ── Farming ─────────────────────────────────────────────
+                {cat: "Farming", name: "Holly",             spr: 68, img: 68, build: true, mats: {holy_seed: 1}},
+                {cat: "Farming", name: "Dye Plant",         spr: 69, img: 69, build: true, mats: {dye_seed: 1}},
+                {cat: "Farming", name: "Holly Bush",        spr: 70, img: 70, build: true, mats: {holy_seed: 1}},
+                {cat: "Farming", name: "Salmoberry",        spr: 71, img: 71, build: true, mats: {salmoberry_seed: 1}},
+                {cat: "Farming", name: "Carrot",            spr: 72, img: 72, build: true, mats: {carrot_seed: 1}},
+                {cat: "Farming", name: "Potato",            spr: 73, img: 73, build: true, mats: {potato: 1}},
+                {cat: "Farming", name: "Onion",             spr: 74, img: 74, build: true, mats: {onion_seed: 1}},
+                {cat: "Farming", name: "Lettuce",           spr: 75, img: 75, build: true, mats: {lettuce_seed: 1}},
+                {cat: "Farming", name: "Tomato",            spr: 76, img: 76, build: true, mats: {tomato_seed: 1}},
 
-                {spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
-                {spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
-                {spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
-                {spr: 40, img: 40, build: true, door: true, mats: {wood: 20}},
-
-                {spr: 58, img: 42, height: 2, build: true, mats: {wood: 50, tinder: 20, red_dye: 1}},
-                {spr: 59, img: 59, build: true, mats: {wood: 20}},
-
-                {spr: 62, img: 62, build: true, mats: {stone: 250, clay: 150, charcoal: 8, silver: 10}},
-                {spr: 63, img: 63, build: true, mats: {wood: 30, silver: 5, hide: 6}},
-
-                {spr: 113, img: 81, height: 3, build: true, mats: {wood: 20, feather: 4, wool: 4}},
-                {spr: 60, img: 60, build: true, mats: {wood: 20}},
-                {spr: 80, img: 80, build: true, mats: {wood: 10}},
-                {spr: 96, img: 96, build: true, mats: {wood: 200, gold: 5}},
-                {spr: 112, img: 112, build: true, mats: {wood: 200, gold: 5}},
-                {spr: 41, img: 41, build: true, mats: {wood: 50, silver: 10, gold: 5}},
-                {spr: 61, img: 61, build: true, mats: {stone: 400, silver: 10}},
-                {spr: 78, img: 78, anim: true, off: 4, build: true, mats: {bronze: 20, flint: 5, gold: 5}},
-
-                {spr: 24, img: 24, build: true, mats: {escape_lantern: 1, dragon_scale: 1, gold: 10}},
-                {spr: 8, img: 8, build: true, mats: {stone: 100, clay: 20, gold: 1}},
-
-                {spr: 21, img: 21, anim: true, block: true, mats: {}},
-                {spr: 23, img: 23, block: true, mats: {}},
-
-                {spr: 2, img: 2, mats: {}},
-                {spr: 3, img: 3, block: true, mats: {stone: 5, clay: 1}},
-                {spr: 4, img: 4, block: true, mats: {stone: 20}},
-                {spr: 5, img: 5, mats: {clay: 5}},
-                {spr: 6, img: 6, mats: {wood: 10}},
-                {spr: 7, img: 7, mats: {stone: 15}},
-
-                {spr: 68, img: 68, build: true, mats: {holy_seed: 1}},
-                {spr: 69, img: 69, build: true, mats: {dye_seed: 1}},
-                {spr: 70, img: 70, build: true, mats: {holy_seed: 1}},
-                {spr: 71, img: 71, build: true, mats: {salmoberry_seed: 1}},
-                {spr: 72, img: 72, build: true, mats: {carrot_seed: 1}},
-                {spr: 73, img: 73, build: true, mats: {potato: 1}},
-                {spr: 74, img: 74, build: true, mats: {onion_seed: 1}},
-                {spr: 75, img: 75, build: true, mats: {lettuce_seed: 1}},
-                {spr: 76, img: 76, build: true, mats: {tomato_seed: 1}},
-
-                {spr: 84, img: 84, build: true, mats: {flower_seed: 1}},
-                {spr: 85, img: 85, build: true, mats: {flower_seed: 1}},
-                {spr: 86, img: 86, build: true, mats: {flower_seed: 1}},
-                {spr: 87, img: 87, build: true, mats: {flower_seed: 1}},
-                {spr: 88, img: 88, build: true, mats: {flower_seed: 1}},
-                {spr: 89, img: 89, build: true, mats: {flower_seed: 1}},
-                {spr: 90, img: 90, build: true, mats: {flower_seed: 1}},
-                {spr: 91, img: 91, build: true, mats: {flower_seed: 1}},
-                {spr: 92, img: 92, build: true, mats: {flower_seed: 1}},
-                {spr: 93, img: 93, build: true, mats: {flower_seed: 1}},
-                {spr: 94, img: 94, build: true, mats: {flower_seed: 1}},
-                {spr: 95, img: 95, build: true, mats: {flower_seed: 1}},
-                {spr: 100, img: 100, build: true, mats: {flower_seed: 1}},
-                {spr: 101, img: 101, build: true, mats: {flower_seed: 1}},
-                {spr: 102, img: 102, build: true, mats: {flower_seed: 1}},
-                {spr: 103, img: 103, build: true, mats: {flower_seed: 1}},
-                {spr: 104, img: 104, build: true, mats: {flower_seed: 1}},
-                {spr: 105, img: 105, build: true, mats: {flower_seed: 1}},
-                {spr: 106, img: 106, build: true, mats: {flower_seed: 1}},
-                {spr: 107, img: 107, build: true, mats: {flower_seed: 1}},
-                {spr: 108, img: 108, build: true, mats: {flower_seed: 1}},
-                {spr: 109, img: 109, build: true, mats: {flower_seed: 1}},
-                {spr: 110, img: 110, build: true, mats: {flower_seed: 1}},
-                {spr: 111, img: 111, build: true, mats: {flower_seed: 1}},
-                {spr: 116, img: 116, build: true, mats: {flower_seed: 1}},
-                {spr: 117, img: 117, build: true, mats: {flower_seed: 1}},
-                {spr: 118, img: 118, build: true, mats: {flower_seed: 1}},
-                {spr: 119, img: 119, build: true, mats: {flower_seed: 1}},
-                {spr: 120, img: 120, build: true, mats: {flower_seed: 1}},
-                {spr: 121, img: 121, build: true, mats: {flower_seed: 1}},
-                {spr: 122, img: 122, build: true, mats: {flower_seed: 1}},
-
-                {spr: 123, img: 123, build: true, mats: {}},
+                // ── Flowers ─────────────────────────────────────────────
+                {cat: "Flowers", name: "Flower 1",  spr: 84,  img: 84,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 2",  spr: 85,  img: 85,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 3",  spr: 86,  img: 86,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 4",  spr: 87,  img: 87,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 5",  spr: 88,  img: 88,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 6",  spr: 89,  img: 89,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 7",  spr: 90,  img: 90,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 8",  spr: 91,  img: 91,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 9",  spr: 92,  img: 92,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 10", spr: 93,  img: 93,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 11", spr: 94,  img: 94,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 12", spr: 95,  img: 95,  build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 13", spr: 100, img: 100, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 14", spr: 101, img: 101, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 15", spr: 102, img: 102, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 16", spr: 103, img: 103, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 17", spr: 104, img: 104, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 18", spr: 105, img: 105, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 19", spr: 106, img: 106, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 20", spr: 107, img: 107, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 21", spr: 108, img: 108, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 22", spr: 109, img: 109, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 23", spr: 110, img: 110, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 24", spr: 111, img: 111, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 25", spr: 116, img: 116, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 26", spr: 117, img: 117, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 27", spr: 118, img: 118, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 28", spr: 119, img: 119, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 29", spr: 120, img: 120, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 30", spr: 121, img: 121, build: true, mats: {flower_seed: 1}},
+                {cat: "Flowers", name: "Flower 31", spr: 122, img: 122, build: true, mats: {flower_seed: 1}},
             ]
 
             const list = document.getElementById("list")
@@ -244,6 +431,7 @@
                     }
 
                     worker.postMessage({floor, build})
+                    updateSize()
                 }
 
                 return state.select
@@ -487,32 +675,60 @@
                 }
 
                 let cat = "";
+                const tooltip = document.getElementById("tooltip");
 
                 list.append(...BUILD.flatMap(item => {
-    const els = [];
-    
-    if (item.category && item.category !== cat) {
-        cat = item.category;
-        const title = document.createElement("div");
-        title.textContent = cat;
-        title.style.cssText = "grid-column: 1 / -1; font-weight: bold; color: #333; background: none; width: 100%; height: auto; cursor: default; margin-top: 8px;";
-        els.push(title);
-    }
-    
-    const div = document.createElement("div");
-                    const x = item.img % TILE * TILE * -1;
-                    const y = Math.floor(item.img / TILE) * TILE * -1;
-                    
-                    div.style.backgroundPosition = `${x}px ${y}px`;
-    div.tabIndex = 1;
-    div.onfocus = () => state.select = item;
-    div.onblur = () => delete state.select;
-    
-    els.push(div);
-    return els;
-}));
+                    const els = [];
+
+                    if (item.cat && item.cat !== cat) {
+                        cat = item.cat;
+                        const label = document.createElement("div");
+                        label.className = "cat-label";
+                        label.textContent = cat;
+                        els.push(label);
+                    }
+
+                    const div = document.createElement("div");
+                    div.className = "item-btn";
+                    // 28px display, spritesheet 256px real → scale factor = 28/16 = 1.75
+                    const scale = 1.75;
+                    const sx = item.img % TILE * TILE * -scale;
+                    const sy = Math.floor(item.img / TILE) * TILE * -scale;
+                    div.style.backgroundPosition = `${sx}px ${sy}px`;
+                    div.tabIndex = 1;
+                    div.title = item.name || "";
+
+                    // Tooltip
+                    div.addEventListener("mouseenter", e => {
+                        tooltip.textContent = item.name || "";
+                        tooltip.style.display = "block";
+                    });
+                    div.addEventListener("mousemove", e => {
+                        tooltip.style.left = (e.clientX + 12) + "px";
+                        tooltip.style.top  = (e.clientY - 28) + "px";
+                    });
+                    div.addEventListener("mouseleave", () => {
+                        tooltip.style.display = "none";
+                    });
+
+                    div.onfocus = () => state.select = item;
+                    div.onblur  = () => delete state.select;
+
+                    els.push(div);
+                    return els;
+                }));
 
                 worker.onmessage = e => mats.textContent = e.data
+
+                function updateSize() {
+                    const walls = Object.entries(build).filter(([, v]) => v.wall);
+                    if (walls.length === 0) { document.getElementById("size-val").textContent = "—"; return; }
+                    const xs = walls.map(([k]) => +k.split(" ")[0]);
+                    const ys = walls.map(([k]) => +k.split(" ")[1]);
+                    const w = Math.max(...xs) - Math.min(...xs) + 1;
+                    const h = Math.max(...ys) - Math.min(...ys) + 1;
+                    document.getElementById("size-val").textContent = `${w} × ${h} tiles`;
+                }
                 // Referências dos novos elementos
                 const baseName = document.getElementById("baseName");
                 const btnExport = document.getElementById("btnExport");
@@ -520,54 +736,50 @@
                 const btnLoad = document.getElementById("btnLoad");
                 const fileInput = document.getElementById("fileInput");
 
-                // Sistema 1: Salvar lista de materiais como .txt
+                // Export materials as .txt
                 btnExport.onclick = () => {
-                    const text = `Projeto: ${baseName.value || "Sem Nome"}\n\nMateriais Necessários:\n${mats.textContent}`;
+                    const text = `Project: ${baseName.value || "Unnamed"}\n\nRequired Materials:\n${mats.textContent}`;
                     const blob = new Blob([text], { type: "text/plain" });
                     const a = document.createElement("a");
                     a.href = URL.createObjectURL(blob);
-                    a.download = (baseName.value || "materiais") + ".txt";
+                    a.download = (baseName.value || "materials") + ".txt";
                     a.click();
                 };
 
-                // Sistema 2: Salvar projeto inteiro como .json para editar depois
+                // Save full project as .json
                 btnSave.onclick = () => {
                     const data = JSON.stringify({ name: baseName.value, build, floor });
                     const blob = new Blob([data], { type: "application/json" });
                     const a = document.createElement("a");
                     a.href = URL.createObjectURL(blob);
-                    a.download = (baseName.value || "projeto_base") + ".json";
+                    a.download = (baseName.value || "base_project") + ".json";
                     a.click();
                 };
 
-                // Sistema 3: Carregar projeto salvo
+                // Load project from .json
                 btnLoad.onclick = () => fileInput.click();
 
                 fileInput.onchange = (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
-                    
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         try {
                             const data = JSON.parse(event.target.result);
                             baseName.value = data.name || "";
-                            
-                            // Limpa o mapa atual e insere os dados carregados
                             Object.keys(build).forEach(k => delete build[k]);
                             Object.keys(floor).forEach(k => delete floor[k]);
                             Object.assign(build, data.build || {});
                             Object.assign(floor, data.floor || {});
-                            
-                            // Atualiza os cálculos e a tela
                             worker.postMessage({floor, build});
+                            updateSize();
                             render();
                         } catch (err) {
-                            alert("Erro ao carregar o arquivo do projeto.");
+                            alert("Failed to load project file.");
                         }
                     };
                     reader.readAsText(file);
-                    fileInput.value = ""; // Reseta o input para permitir carregar o mesmo arquivo novamente se necessário
+                    fileInput.value = "";
                 };
                 canvas.oncontextmenu = e => e.preventDefault()
                 tiles.src = "map.png"
