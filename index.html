@@ -1,4 +1,3 @@
-<!-- SUBSTITUIR TODO O ARQUIVO PELO CÓDIGO ABAIXO -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -209,10 +208,6 @@
             scrollbar-color: #444 transparent;
         }
 
-        #list {
-            display: contents;
-        }
-
         .cat-label {
             display: flex;
             justify-content: space-between;
@@ -229,7 +224,7 @@
             margin: 8px 0 4px 0;
             cursor: pointer;
             user-select: none;
-            grid-column: 8 / -1;
+            grid-column: 1 / -1;
         }
 
         .cat-label:hover { color: #ccc; border-color: #5af; }
@@ -243,6 +238,10 @@
         }
 
         .cat-label.collapsed ~ .cat-group { display: none; }
+
+        #list {
+            display: contents;
+        }
 
         #list .item-btn {
             cursor: pointer;
@@ -378,6 +377,7 @@
             background: #2e2e2e;
             color: #ccc;
             transition: all .15s;
+            position: relative;
         }
 
         .btn:hover {
@@ -414,33 +414,33 @@
     <div id="modal-overlay">
         <div id="modal">
             <div class="subtitle">Welcome to</div>
-            <h1>Mystera Legacy [Base Planner]</h1>
+            <h1>Mystera Legacy<br>Base Planner</h1>
             <div class="credits">Coded by GreyHope / Updated by Darot</div>
             <div class="description">
-                <strong>What is it?</strong><br>
+                <strong>O que é?</strong><br>
                 Um planejador de bases para Mystera Legacy que calcula automaticamente o custo em materiais de suas construções.<br><br>
 
-                <strong>How to use?</strong><br>
-                1. Select an item in the menu on the left<br>
-                2. Click 'left' to put<br>
-                3. Click 'right' to remove<br>
-                4. Shift + Click to fill lines/retangles<br>
-                5. Shift + Alt + Click to erase a large select area<br><br>
+                <strong>Como usar?</strong><br>
+                1. Selecione um item na esquerda<br>
+                2. Clique esquerdo para colocar<br>
+                3. Clique direito para remover<br>
+                4. Shift + clique para preencher linhas/retângulos<br>
+                5. Shift + Alt + clique para apagar em padrão<br><br>
 
-                <strong>How to save my project?</strong><br>
+                <strong>Salvando seu projeto?</strong><br>
                 • Nomeie seu projeto no campo de texto<br>
                 • Use "💾 Save" para salvar como .json editável<br>
                 • Use "📂 Load" para carregar projeto anterior<br>
                 • Use "Export" para gerar imagem ou texto<br><br>
 
-            <div class="subtitle">Enjoy!</div>
+                Aproveite bem o planejador! 🎮
             </div>
             <div class="checkbox-wrapper">
                 <input type="checkbox" id="dontShowAgain" onchange="toggleDontShowAgain()">
-                <label for="dontShowAgain">Don't show this again</label>
+                <label for="dontShowAgain">Não mostrar novamente</label>
             </div>
             <div class="btn-group">
-                <button class="close-btn" onclick="closeModal()">Close</button>
+                <button class="close-btn" onclick="closeModal()">Fechar</button>
             </div>
         </div>
     </div>
@@ -455,12 +455,10 @@
     <div id="left">
         <div id="panel-header">
             <div>
-                <h1>MYSTERA LEGACY</h1><br>
-                <h3>Base Planner</h3>
-
-                <p>Left click to add · Right click to remove · Shift + Click to fill · Shift + Alt + Click to erase an area</p>
+                <h2>Mystera Legacy — Base Planner</h2>
+                <p>Clique esquerdo coloca · Direito apaga · Shift preenche</p>
             </div>
-            <button id="btnHelp" onclick="showModal()" title="Tutorial">?</button>
+            <button id="btnHelp" onclick="showModal()" title="Ver tutorial">?</button>
         </div>
 
         <div id="list-wrap">
@@ -479,7 +477,7 @@
             </div>
 
             <div id="save-section">
-                <input type="text" id="baseName" placeholder="Choose a name...">
+                <input type="text" id="baseName" placeholder="Nome do projeto...">
                 <div class="btn-row">
                     <button class="btn accent" id="btnSave">💾 Save</button>
                     <button class="btn" id="btnLoad">📂 Load</button>
@@ -489,7 +487,7 @@
             </div>
 
             <div id="footer">
-                Developed by · <span>GreyHope / Darot</span>
+                Materials calculator · <span>GreyHope / Darot</span>
             </div>
         </div>
     </div>
@@ -497,8 +495,239 @@
     <canvas></canvas>
 
     <script>
+        // ════════════════════════════════════════════════════════════
+        // ANIMAL ORIENTATION SYSTEM - CACHE E CONFIGURAÇÃO
+        // ════════════════════════════════════════════════════════════
+        const animalSpriteCache = {};
+
+        const ANIMALS_DATA = [
+            {
+                id: "cow",
+                cat: "Animals",
+                name: "Cow",
+                spriteUrl: "https://www.mysteralegacy.com/data/monsters/2.png?v=5.0.9",
+                frameWidth: 16,
+                frameHeight: 16,
+                directions: {
+                    up: [0, 1, 2],
+                    right: [3, 4, 5],
+                    down: [6, 7, 8],
+                    left: [9, 10, 11]
+                },
+                build: true,
+                animal: true,
+                mats: {}
+            },
+            {
+                id: "chicken",
+                cat: "Animals",
+                name: "Chicken",
+                spriteUrl: "https://www.mysteralegacy.com/data/monsters/5.png?v=5.0.9",
+                frameWidth: 16,
+                frameHeight: 16,
+                directions: {
+                    up: [0, 1, 2],
+                    right: [3, 4, 5],
+                    down: [6, 7, 8],
+                    left: [9, 10, 11]
+                },
+                build: true,
+                animal: true,
+                mats: {}
+            },
+            {
+                id: "sheep",
+                cat: "Animals",
+                name: "Sheep",
+                spriteUrl: "https://www.mysteralegacy.com/data/monsters/8.png?v=5.0.9",
+                frameWidth: 16,
+                frameHeight: 16,
+                directions: {
+                    up: [0, 1, 2],
+                    right: [3, 4, 5],
+                    down: [6, 7, 8],
+                    left: [9, 10, 11]
+                },
+                build: true,
+                animal: true,
+                mats: {}
+            },
+            {
+                id: "cat",
+                cat: "Animals",
+                name: "Cat (White)",
+                spriteUrl: "https://www.mysteralegacy.com/data/monsters/19.png?v=5.0.9",
+                frameWidth: 16,
+                frameHeight: 16,
+                directions: {
+                    up: [0, 1, 2],
+                    right: [3, 4, 5],
+                    down: [6, 7, 8],
+                    left: [9, 10, 11]
+                },
+                build: true,
+                animal: true,
+                mats: {}
+            },
+            {
+                id: "pig",
+                cat: "Animals",
+                name: "Pig",
+                spriteUrl: "https://www.mysteralegacy.com/data/monsters/67.png?v=5.0.9",
+                frameWidth: 16,
+                frameHeight: 16,
+                directions: {
+                    up: [0, 1, 2],
+                    right: [3, 4, 5],
+                    down: [6, 7, 8],
+                    left: [9, 10, 11]
+                },
+                build: true,
+                animal: true,
+                mats: {}
+            }
+        ];
+
+        // ════════════════════════════════════════════════════════════
+        // FUNÇÕES DE ORIENTAÇÃO DE ANIMAIS
+        // ════════════════════════════════════════════════════════════
+
+        /**
+         * Encontra o Animal Gate mais próximo
+         */
+        function findNearestAnimalGate(x, y, buildData) {
+            const gates = Object.entries(buildData).filter(([, v]) => v.name === "Animal Gate");
+            
+            if (gates.length === 0) return null;
+
+            let nearestGate = null;
+            let minDistance = Infinity;
+
+            gates.forEach(([key]) => {
+                const [gx, gy] = key.split(" ").map(Number);
+                const distance = Math.hypot(gx - x, gy - y);
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestGate = {x: gx, y: gy, distance};
+                }
+            });
+
+            return nearestGate;
+        }
+
+        /**
+         * Calcula a direção do animal baseado na posição do gate
+         */
+        function getAnimalDirection(animalX, animalY, gateX, gateY) {
+            const dx = gateX - animalX;
+            const dy = gateY - animalY;
+
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+
+            if (absDy > absDx) {
+                return dy > 0 ? "down" : "up";
+            } else {
+                return dx > 0 ? "right" : "left";
+            }
+        }
+
+        /**
+         * Obtém o índice do frame baseado na direção
+         */
+        function getAnimalFrameIndex(animalData, direction = "down") {
+            if (!animalData.directions) return 0;
+            
+            const dirFrames = animalData.directions[direction] || animalData.directions.down || [0];
+            const frameTime = Math.floor(Date.now() / 300) % dirFrames.length;
+            return dirFrames[frameTime];
+        }
+
+        /**
+         * Carrega sprite de animal
+         */
+        async function loadAnimalSprite(url) {
+            if (animalSpriteCache[url]) {
+                return animalSpriteCache[url];
+            }
+
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => {
+                    animalSpriteCache[url] = img;
+                    resolve(img);
+                };
+                img.onerror = () => {
+                    console.warn(`Falha ao carregar sprite: ${url}`);
+                    resolve(null);
+                };
+                img.src = url;
+            });
+        }
+
+        /**
+         * Renderiza animal em canvas context
+         */
+        function renderAnimalToCanvas(ctx, animalData, frameIndex, x, y) {
+            const spriteImg = animalSpriteCache[animalData.spriteUrl];
+            if (!spriteImg) return;
+
+            const col = frameIndex % 4;
+            const row = Math.floor(frameIndex / 4);
+            
+            const sx = col * animalData.frameWidth;
+            const sy = row * animalData.frameHeight;
+            
+            ctx.drawImage(
+                spriteImg,
+                sx, sy,
+                animalData.frameWidth,
+                animalData.frameHeight,
+                x, y,
+                animalData.frameWidth,
+                animalData.frameHeight
+            );
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // FUNÇÕES DO MODAL
+        // ════════════════════════════════════════════════════════════
+
+        function showModal() {
+            document.getElementById("modal-overlay").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("modal-overlay").classList.add("hidden");
+            if (document.getElementById("dontShowAgain").checked) {
+                localStorage.setItem("basePlannerDontShowModal", "true");
+            }
+        }
+
+        function toggleDontShowAgain() {
+            if (document.getElementById("dontShowAgain").checked) {
+                localStorage.setItem("basePlannerDontShowModal", "true");
+            } else {
+                localStorage.removeItem("basePlannerDontShowModal");
+            }
+        }
+
+        if (!localStorage.getItem("basePlannerDontShowModal")) {
+            document.getElementById("modal-overlay").classList.remove("hidden");
+        } else {
+            document.getElementById("modal-overlay").classList.add("hidden");
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // APLICAÇÃO PRINCIPAL
+        // ════════════════════════════════════════════════════════════
+
         const TILE = 16;
+
         const BUILD = [
+            // ── Structures ──────────────────────────────────────────
             {cat: "Structures", name: "Arrow Tower", spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}, wall: true},
             {cat: "Structures", name: "Duel Statue", spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}, wall: true},
             {cat: "Structures", name: "Stone Wall", spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}, wall: true},
@@ -507,8 +736,8 @@
             {cat: "Structures", name: "Personal Gate", spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
             {cat: "Structures", name: "Tribe Gate", spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
             {cat: "Structures", name: "Tribe Vault", spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
-            {cat: "Structures", name: "Walled Tree (Large)", spr: 43, img: 43, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
-            {cat: "Structures", name: "Walled Tree (Small)", spr: 44, img: 44, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
+            {cat: "Structures", name: "Walled Tree (Small)", spr: 43, img: 43, height: 2, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
+            {cat: "Structures", name: "Walled Tree (Large)", spr: 44, img: 44, height: 3, build: true, mats: {stone: 30, clay: 15, dirt: 15}},
             {cat: "Structures", name: "Stone Anvil", spr: 61, img: 61, build: true, mats: {stone: 400, silver: 10}},
             {cat: "Structures", name: "Garbage Bin", spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
             {cat: "Structures", name: "Bellows", spr: 62, img: 62, build: true, mats: {stone: 250, clay: 150, charcoal: 8, silver: 10}},
@@ -517,6 +746,7 @@
             {cat: "Structures", name: "Stairs", spr: 8, img: 8, build: true, mats: {stone: 100, clay: 20, gold: 1}},
             {cat: "Structures", name: "Recall Tile", spr: 24, img: 24, build: true, mats: {escape_lantern: 1, dragon_scale: 1, gold: 10}},
 
+            // ── Furniture ───────────────────────────────────────────
             {cat: "Furniture", name: "Training Dummy", spr: 58, img: 42, height: 2, build: true, mats: {wood: 50, tinder: 20, red_dye: 1}},
             {cat: "Furniture", name: "Signpost", spr: 59, img: 59, build: true, mats: {wood: 20}},
             {cat: "Furniture", name: "Bed", spr: 113, img: 81, height: 3, build: true, mats: {wood: 20, feather: 4, wool: 4}},
@@ -527,17 +757,14 @@
             {cat: "Furniture", name: "Trading Counter", spr: 41, img: 41, build: true, mats: {wood: 50, silver: 10, gold: 5}},
             {cat: "Furniture", name: "Golden Candlestick", spr: 78, img: 78, anim: true, off: 4, build: true, mats: {bronze: 20, flint: 5, gold: 5}},
 
-            {cat: "Animals", name: "Cow", spr: "cow.png", img: 8, build: true, anim: true, mats: {}},
-            {cat: "Animals", name: "Chicken", spr: 1, img: 1, build: true, anim: true, mats: {}},
-            {cat: "Animals", name: "Sheep", spr: 2, img: 2, build: true, anim: true, mats: {}},
-            {cat: "Animals", name: "Cat (White)", spr: 3, img: 3, build: true, anim: true, mats: {}},
-            {cat: "Animals", name: "Cat (Orange)", spr: 3, img: 3, build: true, anim: true, mats: {}},
-            {cat: "Animals", name: "Cat (Black)", spr: 3, img: 3, build: true, anim: true, mats: {}},
-            {cat: "Animals", name: "Dog (Golden)", spr: 3, img: 3, build: true, anim: true, mats: {}},
-            {cat: "Animals", name: "Dog (Golden and Black)", spr: 3, img: 3, build: true, anim: true, mats: {}},
-            {cat: "Animals", name: "Dog (Grey)", spr: 3, img: 3, build: true, anim: true, mats: {}},
-            
+            // ── Animals ─────────────────────────────────────────────
+            {cat: "Animals", name: "Cow", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/2.png?v=5.0.9", mats: {}},
+            {cat: "Animals", name: "Chicken", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/5.png?v=5.0.9", mats: {}},
+            {cat: "Animals", name: "Sheep", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/8.png?v=5.0.9", mats: {}},
+            {cat: "Animals", name: "Cat (White)", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/19.png?v=5.0.9", mats: {}},
+            {cat: "Animals", name: "Pig", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/67.png?v=5.0.9", mats: {}},
 
+            // ── Miscellaneous Items ──────────────────────────────────────
             {cat: "Miscellaneous Items", name: "Tomato", spr: 82, img: 82, build: true, mats: {}},
             {cat: "Miscellaneous Items", name: "Fish", spr: 83, img: 83, build: true, mats: {}},
             {cat: "Miscellaneous Items", name: "Malachite", spr: 98, img: 98, build: true, mats: {}},
@@ -546,6 +773,7 @@
             {cat: "Miscellaneous Items", name: "Repair Kit", spr: 115, img: 115, build: true, mats: {}},
             {cat: "Miscellaneous Items", name: "Chest", spr: 123, img: 123, build: true, mats: {}},
 
+            // ── Floors & Roads ──────────────────────────────────────
             {cat: "Floors & Roads", name: "Ground", spr: 2, img: 2, mats: {}},
             {cat: "Floors & Roads", name: "Gravel Road", spr: 3, img: 3, block: true, mats: {stone: 5, clay: 1}},
             {cat: "Floors & Roads", name: "Stone Road", spr: 4, img: 4, block: true, mats: {stone: 20}},
@@ -555,6 +783,7 @@
             {cat: "Floors & Roads", name: "Deep Water", spr: 21, img: 21, anim: true, block: true, mats: {}},
             {cat: "Floors & Roads", name: "Shallow Water", spr: 23, img: 23, block: true, mats: {}},
 
+            // ── Farming ─────────────────────────────────────────────
             {cat: "Farming", name: "Spice", spr: 68, img: 68, build: true, mats: {holly_seed: 1}},
             {cat: "Farming", name: "Dye", spr: 69, img: 69, build: true, mats: {dye_seed: 1}},
             {cat: "Farming", name: "Salmoberry", spr: 70, img: 70, build: true, mats: {salmoberry_seed: 1}},
@@ -565,6 +794,7 @@
             {cat: "Farming", name: "Lettuce", spr: 75, img: 75, build: true, mats: {lettuce_seed: 1}},
             {cat: "Farming", name: "Tomato", spr: 76, img: 76, build: true, mats: {tomato_seed: 1}},
 
+            // ── Flowers ─────────────────────────────────────────────
             {cat: "Flowers", name: "Flower 1", spr: 84, img: 84, build: true, mats: {flower_seed: 1}},
             {cat: "Flowers", name: "Flower 2", spr: 85, img: 85, build: true, mats: {flower_seed: 1}},
             {cat: "Flowers", name: "Flower 3", spr: 86, img: 86, build: true, mats: {flower_seed: 1}},
@@ -609,31 +839,6 @@
         const build = {};
         const floor = {};
 
-        function showModal() {
-            document.getElementById("modal-overlay").classList.remove("hidden");
-        }
-
-        function closeModal() {
-            document.getElementById("modal-overlay").classList.add("hidden");
-            if (document.getElementById("dontShowAgain").checked) {
-                localStorage.setItem("basePlannerDontShowModal", "true");
-            }
-        }
-
-        function toggleDontShowAgain() {
-            if (document.getElementById("dontShowAgain").checked) {
-                localStorage.setItem("basePlannerDontShowModal", "true");
-            } else {
-                localStorage.removeItem("basePlannerDontShowModal");
-            }
-        }
-
-        if (!localStorage.getItem("basePlannerDontShowModal")) {
-            document.getElementById("modal-overlay").classList.remove("hidden");
-        } else {
-            document.getElementById("modal-overlay").classList.add("hidden");
-        }
-
         function mouse() {
             const rect = canvas.getBoundingClientRect();
             return [
@@ -644,18 +849,6 @@
 
         function add(x, y) {
             return x + " " + y;
-        }
-
-        function fillLine(startX, startY, endX, endY) {
-            const cells = [];
-            const dx = Math.sign(endX - startX);
-            const dy = Math.sign(endY - startY);
-            const steps = Math.max(Math.abs(endX - startX), Math.abs(endY - startY));
-
-            for (let i = 0; i <= steps; i++) {
-                cells.push({x: startX + dx * i, y: startY + dy * i});
-            }
-            return cells;
         }
 
         function fillRectangle(startX, startY, endX, endY) {
@@ -785,7 +978,6 @@
             const baseW = (maxX - minX + 1) * 16;
             const baseH = (maxY - minY + 1) * 16;
 
-            // Renderizar base em canvas temporário
             const offCanvas = document.createElement("canvas");
             const offCtx = offCanvas.getContext("2d");
 
@@ -795,10 +987,8 @@
             offCtx.fillStyle = "#000";
             offCtx.fillRect(0, 0, baseW, baseH);
 
-            // Carregar tileset
             const tileImg = new Image();
             tileImg.onload = () => {
-                // Desenhar tiles
                 for (let x = minX; x <= maxX; x++) {
                     for (let y = minY; y <= maxY; y++) {
                         const px = (x - minX) * 16;
@@ -810,19 +1000,39 @@
                             const sy = Math.floor(tile.img / 16) * 16;
                             offCtx.drawImage(tileImg, sx, sy, 16, 16, px, py, 16, 16);
                         } else {
-                            // Grama padrão
                             offCtx.fillStyle = "#2a5c2a";
                             offCtx.fillRect(px, py, 16, 16);
                         }
 
                         const wall = build[add(x, y)];
-                        if (wall) {
+                        if (wall && !wall.animal) {
                             const sx = (wall.img % 16) * 16;
                             const sy = Math.floor(wall.img / 16) * 16;
                             offCtx.drawImage(tileImg, sx, sy, 16, wall.height * 8, px, py - (wall.height - 1) * 8, 16, wall.height * 16);
                         }
                     }
                 }
+
+                // ✨ RENDERIZAR ANIMAIS COM ORIENTAÇÃO
+                const animals = Object.entries(build).filter(([, v]) => v.animal);
+                animals.forEach(([key, animal]) => {
+                    const [ax, ay] = key.split(" ").map(Number);
+                    const px = (ax - minX) * 16;
+                    const py = (ay - minY) * 16;
+
+                    const animalData = ANIMALS_DATA.find(a => a.spriteUrl === animal.spriteUrl);
+                    if (animalData) {
+                        const nearestGate = findNearestAnimalGate(ax, ay, build);
+                        let direction = "down";
+                        
+                        if (nearestGate) {
+                            direction = getAnimalDirection(ax, ay, nearestGate.x, nearestGate.y);
+                        }
+
+                        const frameIndex = getAnimalFrameIndex(animalData, direction);
+                        renderAnimalToCanvas(offCtx, animalData, frameIndex, px, py);
+                    }
+                });
 
                 let finalCanvas = offCanvas;
 
@@ -836,10 +1046,8 @@
                     legendCtx.fillStyle = "#1a1a1a";
                     legendCtx.fillRect(0, 0, legendCanvas.width, legendCanvas.height);
 
-                    // Cole imagem da base
                     legendCtx.drawImage(offCanvas, 0, 0);
 
-                    // Legenda
                     legendCtx.fillStyle = "#242424";
                     legendCtx.fillRect(0, baseH, 1080, 220);
 
@@ -1033,7 +1241,7 @@ ${mats}
 
                 if (state.select) {
                     const [mx, my] = mouse();
-                    const [x, y] = loc(state.select.spr);
+                    const [x, y] = loc(state.select.spr || 0);
 
                     gl.uniform2f(pos, mx, state.select.off ? my - state.select.off / TILE : my);
                     gl.uniform4f(img, x, y, state.select.height || 1, .7);
@@ -1167,8 +1375,8 @@ ${mats}
                 const div = document.createElement("div");
                 div.className = "item-btn";
                 const scale = 1.75;
-                const sx = item.img % TILE * TILE * -scale;
-                const sy = Math.floor(item.img / TILE) * TILE * -scale;
+                const sx = (item.img || 0) % TILE * TILE * -scale;
+                const sy = Math.floor((item.img || 0) / TILE) * TILE * -scale;
                 div.style.backgroundPosition = `${sx}px ${sy}px`;
                 div.tabIndex = 1;
                 div.title = item.name;
@@ -1233,7 +1441,17 @@ ${mats}
             setInterval(render, 32);
         }
 
-        start();
+        // Pré-carregar sprites de animais
+        const animalsToLoad = ANIMALS_DATA;
+        const animalLoadPromises = animalsToLoad.map(animal => loadAnimalSprite(animal.spriteUrl));
+
+        Promise.all(animalLoadPromises).then(() => {
+            console.log("✓ Animais carregados com sucesso");
+            start();
+        }).catch(() => {
+            console.warn("⚠ Alguns animais não foram carregados, continuando...");
+            start();
+        });
     </script>
 </body>
 </html>
