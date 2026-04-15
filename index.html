@@ -455,10 +455,12 @@
     <div id="left">
         <div id="panel-header">
             <div>
-                <h2>Mystera Legacy — Base Planner</h2>
-                <p>Clique esquerdo coloca · Direito apaga · Shift preenche</p>
+                <h1>MYSTERA LEGACY</h1><br>
+                <h3>Base Planner</h3>
+
+                <p>Left click to add · Right click to remove · Shift + Click to fill · Shift + Alt + Click to erase an area</p>
             </div>
-            <button id="btnHelp" onclick="showModal()" title="Ver tutorial">?</button>
+            <button id="btnHelp" onclick="showModal()" title="Tutorial">?</button>
         </div>
 
         <div id="list-wrap">
@@ -477,7 +479,7 @@
             </div>
 
             <div id="save-section">
-                <input type="text" id="baseName" placeholder="Nome do projeto...">
+                <input type="text" id="baseName" placeholder="Choose a name...">
                 <div class="btn-row">
                     <button class="btn accent" id="btnSave">💾 Save</button>
                     <button class="btn" id="btnLoad">📂 Load</button>
@@ -487,7 +489,7 @@
             </div>
 
             <div id="footer">
-                Materials calculator · <span>GreyHope / Darot</span>
+                Developed by · <span>GreyHope / Darot</span>
             </div>
         </div>
     </div>
@@ -505,8 +507,8 @@
             {cat: "Structures", name: "Personal Gate", spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
             {cat: "Structures", name: "Tribe Gate", spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
             {cat: "Structures", name: "Tribe Vault", spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
-            {cat: "Structures", name: "Walled Tree (Small)", spr: 43, img: 43, height: 2, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
-            {cat: "Structures", name: "Walled Tree (Large)", spr: 44, img: 44, height: 3, build: true, mats: {stone: 30, clay: 15, dirt: 15}},
+            {cat: "Structures", name: "Walled Tree (Large)", spr: 43, img: 43, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
+            {cat: "Structures", name: "Walled Tree (Small)", spr: 44, img: 44, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
             {cat: "Structures", name: "Stone Anvil", spr: 61, img: 61, build: true, mats: {stone: 400, silver: 10}},
             {cat: "Structures", name: "Garbage Bin", spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
             {cat: "Structures", name: "Bellows", spr: 62, img: 62, build: true, mats: {stone: 250, clay: 150, charcoal: 8, silver: 10}},
@@ -525,10 +527,16 @@
             {cat: "Furniture", name: "Trading Counter", spr: 41, img: 41, build: true, mats: {wood: 50, silver: 10, gold: 5}},
             {cat: "Furniture", name: "Golden Candlestick", spr: 78, img: 78, anim: true, off: 4, build: true, mats: {bronze: 20, flint: 5, gold: 5}},
 
-            {cat: "Animals", name: "Cow", spr: 0, img: 0, build: true, animal: true, mats: {}},
-            {cat: "Animals", name: "Chicken", spr: 1, img: 1, build: true, animal: true, mats: {}},
-            {cat: "Animals", name: "Sheep", spr: 2, img: 2, build: true, animal: true, mats: {}},
-            {cat: "Animals", name: "Cat (White)", spr: 3, img: 3, build: true, animal: true, mats: {}},
+            {cat: "Animals", name: "Cow", spr: "cow.png", img: 8, build: true, anim: true, mats: {}},
+            {cat: "Animals", name: "Chicken", spr: 1, img: 1, build: true, anim: true, mats: {}},
+            {cat: "Animals", name: "Sheep", spr: 2, img: 2, build: true, anim: true, mats: {}},
+            {cat: "Animals", name: "Cat (White)", spr: 3, img: 3, build: true, anim: true, mats: {}},
+            {cat: "Animals", name: "Cat (Orange)", spr: 3, img: 3, build: true, anim: true, mats: {}},
+            {cat: "Animals", name: "Cat (Black)", spr: 3, img: 3, build: true, anim: true, mats: {}},
+            {cat: "Animals", name: "Dog (Golden)", spr: 3, img: 3, build: true, anim: true, mats: {}},
+            {cat: "Animals", name: "Dog (Golden and Black)", spr: 3, img: 3, build: true, anim: true, mats: {}},
+            {cat: "Animals", name: "Dog (Grey)", spr: 3, img: 3, build: true, anim: true, mats: {}},
+            
 
             {cat: "Miscellaneous Items", name: "Tomato", spr: 82, img: 82, build: true, mats: {}},
             {cat: "Miscellaneous Items", name: "Fish", spr: 83, img: 83, build: true, mats: {}},
