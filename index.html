@@ -285,7 +285,7 @@
                 </div>
 
                 <div id="footer">
-                    Materials calculator for Mystera Legacy · <span>Made by GreyHope</span>
+                    Materials calculator for Mystera Legacy · <span>Made by GreyHope / Update by darot</span>
                 </div>
             </div>
         </div>
@@ -297,56 +297,58 @@
 
             const BUILD = [
                 // ── Structures ──────────────────────────────────────────
-                {cat: "Structures", name: "Stone Tower",    spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}, wall: true},
-                {cat: "Structures", name: "Bone Tower",     spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}, wall: true},
+                {cat: "Structures", name: "Arrow Tower",    spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}, wall: true},
+                {cat: "Structures", name: "Duel Statue",     spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}, wall: true},
                 {cat: "Structures", name: "Stone Wall",     spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}, wall: true},
                 {cat: "Structures", name: "Wood Wall",      spr: 26, img: 26, height: 2, build: true, mats: {wood: 20}, wall: true},
+                {cat: "Structures", name: "Animal Gate",    spr: 40, img: 40, build: true, door: true, mats: {wood: 20}},
+                {cat: "Structures", name: "Personal Gate",   spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
+                {cat: "Structures", name: "Tribe Gate",  spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
+                {cat: "Structures", name: "Tribe Vault",    spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
                 {cat: "Structures", name: "Chimney",        spr: 43, img: 43, alt: true, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
-                {cat: "Structures", name: "Statue",         spr: 61, img: 61, build: true, mats: {stone: 400, silver: 10}},
-                {cat: "Structures", name: "Anvil",          spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
-                {cat: "Structures", name: "Forge",          spr: 62, img: 62, build: true, mats: {stone: 250, clay: 150, charcoal: 8, silver: 10}},
-                {cat: "Structures", name: "Workbench",      spr: 63, img: 63, build: true, mats: {wood: 30, silver: 5, hide: 6}},
-                {cat: "Structures", name: "Door (Wood)",    spr: 40, img: 40, build: true, door: true, mats: {wood: 20}},
-                {cat: "Structures", name: "Door (Stone)",   spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
-                {cat: "Structures", name: "Door (Silver)",  spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
-                {cat: "Structures", name: "Door (Gold)",    spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
-                {cat: "Structures", name: "Totem",          spr: 77, img: 77, build: true, mats: {stone: 20, wood: 4, flint: 4, charcoal: 4}},
-                {cat: "Structures", name: "Well",           spr: 8, img: 8, build: true, mats: {stone: 100, clay: 20, gold: 1}},
-                {cat: "Structures", name: "Portal",         spr: 24, img: 24, build: true, mats: {escape_lantern: 1, dragon_scale: 1, gold: 10}},
-                {cat: "Structures", name: "Trap",           spr: 78, img: 78, anim: true, off: 4, build: true, mats: {bronze: 20, flint: 5, gold: 5}},
+                {cat: "Structures", name: "Stone Anvil",         spr: 61, img: 61, build: true, mats: {stone: 400, silver: 10}},
+                {cat: "Structures", name: "Garbage Bin",          spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
+                {cat: "Structures", name: "Bellows",          spr: 62, img: 62, build: true, mats: {stone: 250, clay: 150, charcoal: 8, silver: 10}},
+                {cat: "Structures", name: "Bloomery",      spr: 63, img: 63, build: true, mats: {wood: 30, silver: 5, hide: 6}},
+                {cat: "Structures", name: "Fire Pit",          spr: 77, img: 77, build: true, mats: {stone: 20, wood: 4, flint: 4, charcoal: 4}},
+                {cat: "Structures", name: "Stairs",           spr: 8, img: 8, build: true, mats: {stone: 100, clay: 20, gold: 1}},
+                {cat: "Structures", name: "Recall Tile",         spr: 24, img: 24, build: true, mats: {escape_lantern: 1, dragon_scale: 1, gold: 10}},
 
                 // ── Furniture ───────────────────────────────────────────
-                {cat: "Furniture", name: "Candelabra",      spr: 58, img: 42, height: 2, build: true, mats: {wood: 50, tinder: 20, red_dye: 1}},
-                {cat: "Furniture", name: "Torch",           spr: 59, img: 59, build: true, mats: {wood: 20}},
+                {cat: "Furniture", name: "Training Dummy",      spr: 58, img: 42, height: 2, build: true, mats: {wood: 50, tinder: 20, red_dye: 1}},
+                {cat: "Furniture", name: "Signpost",           spr: 59, img: 59, build: true, mats: {wood: 20}},
                 {cat: "Furniture", name: "Bed",             spr: 113, img: 81, height: 3, build: true, mats: {wood: 20, feather: 4, wool: 4}},
-                {cat: "Furniture", name: "Chair",           spr: 60, img: 60, build: true, mats: {wood: 20}},
-                {cat: "Furniture", name: "Stool",           spr: 80, img: 80, build: true, mats: {wood: 10}},
-                {cat: "Furniture", name: "Bookshelf",       spr: 96, img: 96, build: true, mats: {wood: 200, gold: 5}},
-                {cat: "Furniture", name: "Cabinet",         spr: 112, img: 112, build: true, mats: {wood: 200, gold: 5}},
-                {cat: "Furniture", name: "Chest",           spr: 41, img: 41, build: true, mats: {wood: 50, silver: 10, gold: 5}},
-                {cat: "Furniture", name: "Wall Segment A",  spr: 82, img: 82, build: true, mats: {}},
-                {cat: "Furniture", name: "Wall Segment B",  spr: 83, img: 83, build: true, mats: {}},
-                {cat: "Furniture", name: "Wall Segment C",  spr: 98, img: 98, build: true, mats: {}},
-                {cat: "Furniture", name: "Wall Segment D",  spr: 99, img: 99, build: true, mats: {}},
-                {cat: "Furniture", name: "Wall Segment E",  spr: 114, img: 114, build: true, mats: {}},
-                {cat: "Furniture", name: "Wall Segment F",  spr: 115, img: 115, build: true, mats: {}},
-                {cat: "Furniture", name: "Misc Item",       spr: 123, img: 123, build: true, mats: {}},
+                {cat: "Furniture", name: "Wooden Table",           spr: 60, img: 60, build: true, mats: {wood: 20}},
+                {cat: "Furniture", name: "Chair",           spr: 80, img: 80, build: true, mats: {wood: 10}},
+                {cat: "Furniture", name: "Empty Bookcase",       spr: 96, img: 96, build: true, mats: {wood: 200, gold: 5}},
+                {cat: "Furniture", name: "Bookcase",         spr: 112, img: 112, build: true, mats: {wood: 200, gold: 5}},
+                {cat: "Furniture", name: "Trading Counter",           spr: 41, img: 41, build: true, mats: {wood: 50, silver: 10, gold: 5}},
+                {cat: "Furniture", name: "Golden Candlestick",           spr: 78, img: 78, anim: true, off: 4, build: true, mats: {bronze: 20, flint: 5, gold: 5}},
+
+                // ── Miscellaneous Items ──────────────────────────────────────
+                {cat: "Miscellaneous Items", name: "Tomato",  spr: 82, img: 82, build: true, mats: {}},
+                {cat: "Miscellaneous Items", name: "Fish",  spr: 83, img: 83, build: true, mats: {}},
+                {cat: "Miscellaneous Items", name: "Malachite",  spr: 98, img: 98, build: true, mats: {}},
+                {cat: "Miscellaneous Items", name: "Cassiterite",  spr: 99, img: 99, build: true, mats: {}},
+                {cat: "Miscellaneous Items", name: "Wood",  spr: 114, img: 114, build: true, mats: {}},
+                {cat: "Miscellaneous Items", name: "Repair Kit",  spr: 115, img: 115, build: true, mats: {}},
+                {cat: "Miscellaneous Items", name: "Chest",       spr: 123, img: 123, build: true, mats: {}},
 
                 // ── Floors & Roads ──────────────────────────────────────
-                {cat: "Floors & Roads", name: "Grass",      spr: 2, img: 2, mats: {}},
-                {cat: "Floors & Roads", name: "Stone Road", spr: 3, img: 3, block: true, mats: {stone: 5, clay: 1}},
-                {cat: "Floors & Roads", name: "Stone Floor",spr: 4, img: 4, block: true, mats: {stone: 20}},
-                {cat: "Floors & Roads", name: "Clay Road",  spr: 5, img: 5, mats: {clay: 5}},
+                {cat: "Floors & Roads", name: "Ground",      spr: 2, img: 2, mats: {}},
+                {cat: "Floors & Roads", name: "Gravel Road", spr: 3, img: 3, block: true, mats: {stone: 5, clay: 1}},
+                {cat: "Floors & Roads", name: "Stone Road",spr: 4, img: 4, block: true, mats: {stone: 20}},
+                {cat: "Floors & Roads", name: "Clay Floor",  spr: 5, img: 5, mats: {clay: 5}},
                 {cat: "Floors & Roads", name: "Wood Floor", spr: 6, img: 6, mats: {wood: 10}},
-                {cat: "Floors & Roads", name: "Dirt Path",  spr: 7, img: 7, mats: {stone: 15}},
-                {cat: "Floors & Roads", name: "Water",      spr: 21, img: 21, anim: true, block: true, mats: {}},
-                {cat: "Floors & Roads", name: "Rock",       spr: 23, img: 23, block: true, mats: {}},
+                {cat: "Floors & Roads", name: "Stone Floor",  spr: 7, img: 7, mats: {stone: 15}},
+                {cat: "Floors & Roads", name: "Deep Water",      spr: 21, img: 21, anim: true, block: true, mats: {}},
+                {cat: "Floors & Roads", name: "Shallow Water",       spr: 23, img: 23, block: true, mats: {}},
 
                 // ── Farming ─────────────────────────────────────────────
-                {cat: "Farming", name: "Holly",             spr: 68, img: 68, build: true, mats: {holy_seed: 1}},
-                {cat: "Farming", name: "Dye Plant",         spr: 69, img: 69, build: true, mats: {dye_seed: 1}},
-                {cat: "Farming", name: "Holly Bush",        spr: 70, img: 70, build: true, mats: {holy_seed: 1}},
-                {cat: "Farming", name: "Salmoberry",        spr: 71, img: 71, build: true, mats: {salmoberry_seed: 1}},
+                {cat: "Farming", name: "Spice",             spr: 68, img: 68, build: true, mats: {holly_seed: 1}},
+                {cat: "Farming", name: "Dye",         spr: 69, img: 69, build: true, mats: {dye_seed: 1}},
+                {cat: "Farming", name: "Salmoberry",        spr: 70, img: 70, build: true, mats: {salmoberry_seed: 1}},
+                {cat: "Farming", name: "Holly",        spr: 71, img: 71, build: true, mats: {holly_seed: 1}},
                 {cat: "Farming", name: "Carrot",            spr: 72, img: 72, build: true, mats: {carrot_seed: 1}},
                 {cat: "Farming", name: "Potato",            spr: 73, img: 73, build: true, mats: {potato: 1}},
                 {cat: "Farming", name: "Onion",             spr: 74, img: 74, build: true, mats: {onion_seed: 1}},
