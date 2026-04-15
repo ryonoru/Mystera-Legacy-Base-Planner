@@ -1,3 +1,4 @@
+<!-- SUBSTITUIR TODO O ARQUIVO PELO CÓDIGO ABAIXO -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,8 +48,6 @@
             max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            scrollbar-width: thin;
-            scrollbar-color: #444 transparent;
         }
 
         #modal .subtitle {
@@ -114,28 +113,10 @@
             cursor: pointer;
             border-radius: 4px;
             font-size: 11px;
-            transition: all .15s;
         }
 
         #modal .close-btn:hover {
             background: #1e3d66;
-            border-color: #5af;
-        }
-
-        #btnHelp {
-            padding: 6px 10px;
-            background: #2e2e2e;
-            border: 1px solid #3a3a3a;
-            color: #ccc;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 10px;
-            transition: all .15s;
-        }
-
-        #btnHelp:hover {
-            background: #3a3a3a;
-            color: #fff;
             border-color: #5af;
         }
 
@@ -150,8 +131,6 @@
             min-width: 180px;
             max-height: 200px;
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #444 transparent;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
@@ -168,14 +147,10 @@
             cursor: pointer;
             text-align: left;
             font-size: 10px;
-            transition: all .15s;
         }
 
         .export-popup button:last-child { border-bottom: none; }
-        .export-popup button:hover {
-            background: #1a3050;
-            color: #7df;
-        }
+        .export-popup button:hover { background: #1a3050; color: #7df; }
 
         /* ── Left panel ─────────────────────────────── */
         #left {
@@ -195,10 +170,6 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-        }
-
-        #panel-header .header-content {
-            flex: 1;
         }
 
         #panel-header h2 {
@@ -238,6 +209,10 @@
             scrollbar-color: #444 transparent;
         }
 
+        #list {
+            display: contents;
+        }
+
         .cat-label {
             display: flex;
             justify-content: space-between;
@@ -254,12 +229,11 @@
             margin: 8px 0 4px 0;
             cursor: pointer;
             user-select: none;
-            transition: all .15s;
+            grid-column: 1 / -1;
         }
 
         .cat-label:hover { color: #ccc; border-color: #5af; }
         .cat-label .toggle { font-size: 12px; font-weight: bold; }
-        .cat-label.collapsed + .cat-group { display: none !important; }
 
         .cat-group {
             display: grid;
@@ -267,6 +241,8 @@
             gap: 4px;
             margin-bottom: 8px;
         }
+
+        .cat-label.collapsed ~ .cat-group { display: none; }
 
         #list .item-btn {
             cursor: pointer;
@@ -402,7 +378,6 @@
             background: #2e2e2e;
             color: #ccc;
             transition: all .15s;
-            position: relative;
         }
 
         .btn:hover {
@@ -479,7 +454,7 @@
 
     <div id="left">
         <div id="panel-header">
-            <div class="header-content">
+            <div>
                 <h2>Mystera Legacy — Base Planner</h2>
                 <p>Clique esquerdo coloca · Direito apaga · Shift preenche</p>
             </div>
@@ -617,7 +592,7 @@
 
         const list = document.getElementById("list");
         const canvas = document.querySelector("canvas");
-        const gl = canvas.getContext("webgl2");
+        const gl = canvas.getContext("webgl2", {preserveDrawingBuffer: true});
         const worker = new Worker("worker.js");
         const heightMap = {};
 
@@ -801,100 +776,112 @@
 
             const baseW = (maxX - minX + 1) * 16;
             const baseH = (maxY - minY + 1) * 16;
-            const legendH = withLegend ? 220 : 0;
 
+            // Renderizar base em canvas temporário
             const offCanvas = document.createElement("canvas");
             const offCtx = offCanvas.getContext("2d");
 
-            offCanvas.width = withLegend ? 1080 : baseW;
-            offCanvas.height = baseH + legendH;
+            offCanvas.width = baseW;
+            offCanvas.height = baseH;
 
-            offCtx.fillStyle = "#1a1a1a";
-            offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
-
-            // Draw base area
-            offCtx.fillStyle = "#333";
+            offCtx.fillStyle = "#000";
             offCtx.fillRect(0, 0, baseW, baseH);
 
-            // Draw grid
-            offCtx.strokeStyle = "rgba(100, 100, 100, 0.3)";
-            offCtx.lineWidth = 0.5;
+            // Carregar tileset
+            const tileImg = new Image();
+            tileImg.onload = () => {
+                // Desenhar tiles
+                for (let x = minX; x <= maxX; x++) {
+                    for (let y = minY; y <= maxY; y++) {
+                        const px = (x - minX) * 16;
+                        const py = (y - minY) * 16;
 
-            for (let x = minX; x <= maxX; x++) {
-                for (let y = minY; y <= maxY; y++) {
-                    const px = (x - minX) * 16;
-                    const py = (y - minY) * 16;
+                        const tile = floor[add(x, y)];
+                        if (tile) {
+                            const sx = (tile.img % 16) * 16;
+                            const sy = Math.floor(tile.img / 16) * 16;
+                            offCtx.drawImage(tileImg, sx, sy, 16, 16, px, py, 16, 16);
+                        } else {
+                            // Grama padrão
+                            offCtx.fillStyle = "#2a5c2a";
+                            offCtx.fillRect(px, py, 16, 16);
+                        }
 
-                    offCtx.strokeRect(px, py, 16, 16);
-
-                    const tile = floor[add(x, y)];
-                    if (tile) {
-                        offCtx.fillStyle = "#2a2a2a";
-                        offCtx.fillRect(px, py, 16, 16);
-                    }
-
-                    const wall = build[add(x, y)];
-                    if (wall) {
-                        offCtx.fillStyle = "#555";
-                        offCtx.fillRect(px + 1, py + 1, 14, 14);
-                        offCtx.fillStyle = "#aaa";
-                        offCtx.font = "bold 8px monospace";
-                        offCtx.textAlign = "center";
-                        offCtx.fillText(wall.name[0], px + 8, py + 10);
+                        const wall = build[add(x, y)];
+                        if (wall) {
+                            const sx = (wall.img % 16) * 16;
+                            const sy = Math.floor(wall.img / 16) * 16;
+                            offCtx.drawImage(tileImg, sx, sy, 16, wall.height * 8, px, py - (wall.height - 1) * 8, 16, wall.height * 16);
+                        }
                     }
                 }
-            }
 
-            // Draw legend
-            if (withLegend) {
-                offCtx.fillStyle = "#242424";
-                offCtx.fillRect(0, baseH, offCanvas.width, legendH);
+                let finalCanvas = offCanvas;
 
-                offCtx.fillStyle = "#fff";
-                offCtx.font = "bold 22px monospace";
-                offCtx.textAlign = "left";
-                offCtx.fillText(document.getElementById("baseName").value || "Unnamed Base", 20, baseH + 35);
+                if (withLegend) {
+                    const legendCanvas = document.createElement("canvas");
+                    const legendCtx = legendCanvas.getContext("2d");
 
-                const sizeText = document.getElementById("size-val").textContent;
-                const now = new Date().toLocaleDateString();
-                offCtx.fillStyle = "#aaa";
-                offCtx.font = "11px monospace";
-                offCtx.fillText(`${sizeText} · ${now}`, 20, baseH + 58);
+                    legendCanvas.width = 1080;
+                    legendCanvas.height = baseH + 220;
 
-                offCtx.strokeStyle = "#555";
-                offCtx.lineWidth = 1;
-                offCtx.strokeRect(20, baseH + 70, offCanvas.width - 40, 35);
-                offCtx.fillStyle = "#888";
-                offCtx.font = "9px monospace";
-                offCtx.fillText("Coded by GreyHope / Updated by Darot", 30, baseH + 87);
-                offCtx.fillText("Materials calculator for Mystera Legacy", 30, baseH + 99);
+                    legendCtx.fillStyle = "#1a1a1a";
+                    legendCtx.fillRect(0, 0, legendCanvas.width, legendCanvas.height);
 
-                const mats = document.getElementById("mats").textContent;
-                const matLines = mats.split("\n").filter(l => l.trim());
-                offCtx.fillStyle = "#ccc";
-                offCtx.font = "9px monospace";
+                    // Cole imagem da base
+                    legendCtx.drawImage(offCanvas, 0, 0);
 
-                let xCol = 20;
-                let yOffset = baseH + 120;
-                let colCount = 0;
+                    // Legenda
+                    legendCtx.fillStyle = "#242424";
+                    legendCtx.fillRect(0, baseH, 1080, 220);
 
-                matLines.forEach((line) => {
-                    if (colCount >= 10) {
-                        xCol += 320;
-                        colCount = 0;
-                        yOffset = baseH + 120;
-                    }
-                    offCtx.textAlign = "left";
-                    offCtx.fillText(line, xCol, yOffset);
-                    yOffset += 12;
-                    colCount++;
-                });
-            }
+                    legendCtx.fillStyle = "#fff";
+                    legendCtx.font = "bold 22px monospace";
+                    legendCtx.fillText(document.getElementById("baseName").value || "Unnamed Base", 20, baseH + 35);
 
-            const link = document.createElement("a");
-            link.href = offCanvas.toDataURL("image/jpeg", 0.92);
-            link.download = (document.getElementById("baseName").value || "base_design") + ".jpg";
-            link.click();
+                    const sizeText = document.getElementById("size-val").textContent;
+                    const now = new Date().toLocaleDateString();
+                    legendCtx.fillStyle = "#aaa";
+                    legendCtx.font = "11px monospace";
+                    legendCtx.fillText(`${sizeText} · ${now}`, 20, baseH + 58);
+
+                    legendCtx.strokeStyle = "#555";
+                    legendCtx.lineWidth = 1;
+                    legendCtx.strokeRect(20, baseH + 70, 1040, 35);
+                    legendCtx.fillStyle = "#888";
+                    legendCtx.font = "9px monospace";
+                    legendCtx.fillText("Coded by GreyHope / Updated by Darot", 30, baseH + 87);
+                    legendCtx.fillText("Materials calculator for Mystera Legacy", 30, baseH + 99);
+
+                    const mats = document.getElementById("mats").textContent;
+                    const matLines = mats.split("\n").filter(l => l.trim());
+                    legendCtx.fillStyle = "#ccc";
+                    legendCtx.font = "9px monospace";
+
+                    let xCol = 20;
+                    let yOffset = baseH + 120;
+                    let colCount = 0;
+
+                    matLines.forEach((line) => {
+                        if (colCount >= 10) {
+                            xCol += 320;
+                            colCount = 0;
+                            yOffset = baseH + 120;
+                        }
+                        legendCtx.fillText(line, xCol, yOffset);
+                        yOffset += 12;
+                        colCount++;
+                    });
+
+                    finalCanvas = legendCanvas;
+                }
+
+                const link = document.createElement("a");
+                link.href = finalCanvas.toDataURL("image/jpeg", 0.92);
+                link.download = (document.getElementById("baseName").value || "base_design") + ".jpg";
+                link.click();
+            };
+            tileImg.src = "map.png";
         }
 
         function exportAsText() {
@@ -1146,10 +1133,9 @@ ${mats}
             const tooltip = document.getElementById("tooltip");
             const catStates = {};
 
-            // Inicializar categorias como collapsed
             BUILD.forEach(item => {
                 if (item.cat && !catStates.hasOwnProperty(item.cat)) {
-                    catStates[item.cat] = true; // true = collapsed
+                    catStates[item.cat] = true;
                 }
             });
 
@@ -1169,9 +1155,6 @@ ${mats}
                     });
                     els.push(label);
                 }
-
-                const group = document.createElement("div");
-                group.className = "cat-group";
 
                 const div = document.createElement("div");
                 div.className = "item-btn";
@@ -1197,8 +1180,7 @@ ${mats}
                 div.onfocus = () => state.select = item;
                 div.onblur = () => delete state.select;
 
-                group.appendChild(div);
-                els.push(group);
+                els.push(div);
                 return els;
             }));
 
