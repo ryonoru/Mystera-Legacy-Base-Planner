@@ -4,11 +4,11 @@
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <meta name="description" content="Calculate the materials cost to build structures in the world of Mystera Legacy.">
 
-        <title>Mystera Legacy Base Planner</title>
+        <title>Kyōsan Base Planner</title>
 
         <style>
             html, body {
-                height: 100%
+                height: 100%;
             }
 
             body {
@@ -16,15 +16,15 @@
                 display: flex;
                 margin: 0;
                 background-color: #222;
-                overflow: hidden
+                overflow: hidden;
             }
 
             canvas {
                 min-width: 0;
                 flex: 1 1 0;
-                image-rendering: crisp-edges;
+                image-rendering: pixelated;
                 user-select: none;
-                cursor: crosshair
+                cursor: crosshair;
             }
 
             #mats {
@@ -43,10 +43,9 @@
                 display: flex;
                 flex-direction: column;
                 gap: 1em;
-                overflow-y: auto; /* Permite rolar o menu lateral se tiver muitas categorias */
+                overflow-y: auto;
             }
 
-            /* Títulos em CapsLock e Maiores */
             .category-title {
                 text-transform: uppercase;
                 font-weight: bold;
@@ -56,7 +55,6 @@
                 margin-top: 10px;
             }
 
-            /* Retângulos fixos para cada categoria */
             .category-box {
                 border-radius: .5em;
                 padding: .5em;
@@ -66,18 +64,19 @@
                 gap: .5em;
             }
 
-            #list div {
+            /* CSS Corrigido para as caixas */
+            .category-box div {
                 cursor: pointer;
                 border-radius: 2px;
-                image-rendering: crisp-edges;
+                image-rendering: pixelated; 
                 width: 32px;
                 height: 32px;
                 background-image: url("map.png");
                 background-size: 512px 320px; 
             }
 
-            #list div:focus {
-                outline: 2px solid #07f
+            .category-box div:focus {
+                outline: 2px solid #07f;
             }
 
             section {
@@ -88,7 +87,7 @@
             }
 
             span {
-                color: #fff
+                color: #fff;
             }
         </style>
     </head>
@@ -101,19 +100,19 @@
 
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 <input type="text" id="baseName" placeholder="Nome da base..." style="padding: 6px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px;">
-                <div id="baseSize" style="color: #aaa; font-size: 13px; text-align: center;">Tamanho: 0x0</div>
+                <div id="baseSize" style="color: #aaa; font-size: 13px; text-align: center;">Tamanho (Paredes): 0x0</div>
                 
-                <button id="btnExport" style="padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Export materials list (.txt)</button>
+                <button id="btnExport" style="padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Salvar Materiais (.txt)</button>
                 
                 <div style="display: flex; gap: 8px;">
-                    <button id="btnSave" style="flex: 1; padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Save your project</button>
-                    <button id="btnLoad" style="flex: 1; padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Upload a project</button>
+                    <button id="btnSave" style="flex: 1; padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Salvar Projeto</button>
+                    <button id="btnLoad" style="flex: 1; padding: 6px; cursor: pointer; border-radius: 4px; border: none; background: #eee;">Carregar</button>
                 </div>
                 <input type="file" id="fileInput" accept=".json" style="display: none;">
             </div>
 
             <section>
-                Planner &middot; <span>Kyōsan Edits 🪴🐈</span> 
+                Planner &middot; <span>Kyōsan Edits e GFX</span> 
             </section>
         </div>
 
@@ -122,25 +121,29 @@
         <script>
             const TILE = 16
 
-            // Organizei os itens garantindo que as flores com flower_seed fiquem juntas
             const BUILD = [
-                {category: "STRUCTURES", name: "Arrow Tower", spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}},
+                // ESTRUTURAS
+                {category: "ESTRUTURAS", name: "Torre de Pedra", spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}},
                 {name: "Torre de Osso", spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}},
-                {name: "Parede de Tijolos", spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}},
+                {name: "Parede de Tijolo", spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}},
                 {name: "Parede de Madeira", spr: 26, img: 26, height: 2, build: true, mats: {wood: 20}},
-                {name: "Portão", spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20}},
+                {name: "Parede de Barro", spr: 43, img: 43, alt: true, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
+                {name: "Cerca", spr: 77, img: 77, build: true, mats: {stone: 20, wood: 4, flint: 4, charcoal: 4}},
+                {name: "Muro Rústico", spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
+                {name: "Parede Extra 1", spr: 82, img: 82, build: true, mats: {}},
+                {name: "Parede Extra 2", spr: 83, img: 83, build: true, mats: {}},
+                {name: "Coluna 1", spr: 98, img: 98, build: true, mats: {}},
+                {name: "Coluna 2", spr: 99, img: 99, build: true, mats: {}},
+                {name: "Muro Forte 1", spr: 114, img: 114, build: true, mats: {}},
+                {name: "Muro Forte 2", spr: 115, img: 115, build: true, mats: {}},
 
-                {category: "TERRENOS", name: "Grama", spr: 21, img: 21, anim: true, block: true, mats: {}},
-                {name: "Estrada", spr: 3, img: 3, block: true, mats: {stone: 5}},
+                // PORTAS
+                {category: "PORTAS", name: "Portão", spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
+                {name: "Portão Reforçado", spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
+                {name: "Portão Ouro", spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
+                {name: "Portão Madeira", spr: 40, img: 40, build: true, door: true, mats: {wood: 20}},
 
-                {category: "FLORES", name: "Flor 1", spr: 84, img: 84, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 2", spr: 85, img: 85, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 3", spr: 86, img: 86, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 4", spr: 87, img: 87, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 5", spr: 88, img: 88, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 6", spr: 89, img: 89, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 7", spr: 90, img: 90, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 8", spr: 91, img: 91, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 9", spr: 92, img: 92, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 10", spr: 93, img: 93, build: true, mats: {flower_seed: 1}},
-                {name: "Flor 11",
+                // UTILITÁRIOS E MÓVEIS
+                {category: "UTILITÁRIOS E MÓVEIS", name: "Alvo", spr: 58, img: 42, height: 2, build: true, mats: {wood: 50, tinder: 20, red_dye: 1}},
+                {name: "Mesa", spr: 59, img: 59, build: true, mats: {wood: 20}},
+                {name: "Forja", spr: 62, img: 62, build: true, mats: {
