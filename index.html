@@ -510,292 +510,10 @@
     <canvas></canvas>
 
     <script>
-        // ════════════════════════════════════════════════════════════
-        // ANIMAL ORIENTATION SYSTEM - CACHE AND CONFIGURATION
-        // ════════════════════════════════════════════════════════════
-        const animalSpriteCache = {};
-
-        const ANIMALS_DATA = [
-            {
-                id: "cow",
-                cat: "Animals",
-                name: "Cow",
-                spriteUrl: "https://www.mysteralegacy.com/data/monsters/2.png?v=5.0.9",
-                frameWidth: 16,
-                frameHeight: 16,
-                directions: {
-                    up: [0, 1, 2],
-                    right: [3, 4, 5],
-                    down: [6, 7, 8],
-                    left: [9, 10, 11]
-                },
-                build: true,
-                animal: true,
-                mats: {}
-            },
-            {
-                id: "chicken",
-                cat: "Animals",
-                name: "Chicken",
-                spriteUrl: "https://www.mysteralegacy.com/data/monsters/5.png?v=5.0.9",
-                frameWidth: 16,
-                frameHeight: 16,
-                directions: {
-                    up: [0, 1, 2],
-                    right: [3, 4, 5],
-                    down: [6, 7, 8],
-                    left: [9, 10, 11]
-                },
-                build: true,
-                animal: true,
-                mats: {}
-            },
-            {
-                id: "sheep",
-                cat: "Animals",
-                name: "Sheep",
-                spriteUrl: "https://www.mysteralegacy.com/data/monsters/8.png?v=5.0.9",
-                frameWidth: 16,
-                frameHeight: 16,
-                directions: {
-                    up: [0, 1, 2],
-                    right: [3, 4, 5],
-                    down: [6, 7, 8],
-                    left: [9, 10, 11]
-                },
-                build: true,
-                animal: true,
-                mats: {}
-            },
-            {
-                id: "catw",
-                cat: "Animals",
-                name: "Cat (White)",
-                spriteUrl: "https://www.mysteralegacy.com/data/monsters/131.png?v=5.0.9",
-                frameWidth: 16,
-                frameHeight: 16,
-                directions: {
-                    up: [0, 1, 2],
-                    right: [3, 4, 5],
-                    down: [6, 7, 8],
-                    left: [9, 10, 11]
-                },
-                build: true,
-                animal: true,
-                mats: {}
-            },
-            {
-                id: "cato",
-                cat: "Animals",
-                name: "Cat (Orange)",
-                spriteUrl: "https://www.mysteralegacy.com/data/monsters/67.png?v=5.0.9",
-                frameWidth: 16,
-                frameHeight: 16,
-                directions: {
-                    up: [0, 1, 2],
-                    right: [3, 4, 5],
-                    down: [6, 7, 8],
-                    left: [9, 10, 11]
-                },
-                build: true,
-                animal: true,
-                mats: {}
-            },
-            {
-                id: "catb",
-                cat: "Animals",
-                name: "Cat (Black)",
-                spriteUrl: "https://www.mysteralegacy.com/data/monsters/132.png?v=5.0.9",
-                frameWidth: 16,
-                frameHeight: 16,
-                directions: {
-                    up: [0, 1, 2],
-                    right: [3, 4, 5],
-                    down: [6, 7, 8],
-                    left: [9, 10, 11]
-                },
-                build: true,
-                animal: true,
-                mats: {}
-            },
-            {
-                id: "dog",
-                cat: "Animals",
-                name: "Dog (Golden)",
-                spriteUrl: "https://www.mysteralegacy.com/data/monsters/19.png?v=5.0.9",
-                frameWidth: 16,
-                frameHeight: 16,
-                directions: {
-                    up: [0, 1, 2],
-                    right: [3, 4, 5],
-                    down: [6, 7, 8],
-                    left: [9, 10, 11]
-                },
-                build: true,
-                animal: true,
-                mats: {}
-            },
-            {
-                id: "dogb",
-                cat: "Animals",
-                name: "Dog (Black)",
-                spriteUrl: "https://www.mysteralegacy.com/data/monsters/133.png?v=5.0.9",
-                frameWidth: 16,
-                frameHeight: 16,
-                directions: {
-                    up: [0, 1, 2],
-                    right: [3, 4, 5],
-                    down: [6, 7, 8],
-                    left: [9, 10, 11]
-                },
-                build: true,
-                animal: true,
-                mats: {}
-            },
-            {
-                id: "dogg",
-                cat: "Animals",
-                name: "Dog (Grey)",
-                spriteUrl: "https://www.mysteralegacy.com/data/monsters/134.png?v=5.0.9",
-                frameWidth: 16,
-                frameHeight: 16,
-                directions: {
-                    up: [0, 1, 2],
-                    right: [3, 4, 5],
-                    down: [6, 7, 8],
-                    left: [9, 10, 11]
-                },
-                build: true,
-                animal: true,
-                mats: {}
-            }
-        ];
-
-        // ════════════════════════════════════════════════════════════
-        // ANIMAL ORIENTATION FUNCTIONS
-        // ════════════════════════════════════════════════════════════
-
-        function findNearestAnimalGate(x, y, buildData) {
-            const gates = Object.entries(buildData).filter(([, v]) => v.name === "Animal Gate");
-            
-            if (gates.length === 0) return null;
-
-            let nearestGate = null;
-            let minDistance = Infinity;
-
-            gates.forEach(([key]) => {
-                const [gx, gy] = key.split(" ").map(Number);
-                const distance = Math.hypot(gx - x, gy - y);
-                
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    nearestGate = {x: gx, y: gy, distance};
-                }
-            });
-
-            return nearestGate;
-        }
-
-        function getAnimalDirection(animalX, animalY, gateX, gateY) {
-            const dx = gateX - animalX;
-            const dy = gateY - animalY;
-
-            const absDx = Math.abs(dx);
-            const absDy = Math.abs(dy);
-
-            if (absDy > absDx) {
-                return dy > 0 ? "down" : "up";
-            } else {
-                return dx > 0 ? "right" : "left";
-            }
-        }
-
-        function getAnimalFrameIndex(animalData, direction = "down") {
-            if (!animalData.directions) return 0;
-            
-            const dirFrames = animalData.directions[direction] || animalData.directions.down || [0];
-            const frameTime = Math.floor(Date.now() / 300) % dirFrames.length;
-            return dirFrames[frameTime];
-        }
-
-        async function loadAnimalSprite(url) {
-            if (animalSpriteCache[url]) {
-                return animalSpriteCache[url];
-            }
-
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.crossOrigin = "anonymous";
-                img.onload = () => {
-                    animalSpriteCache[url] = img;
-                    resolve(img);
-                };
-                img.onerror = () => {
-                    console.warn(`Failed to load sprite: ${url}`);
-                    resolve(null);
-                };
-                img.src = url;
-            });
-        }
-
-        function renderAnimalToCanvas(ctx, animalData, frameIndex, x, y) {
-            const spriteImg = animalSpriteCache[animalData.spriteUrl];
-            if (!spriteImg) return;
-
-            const col = frameIndex % 4;
-            const row = Math.floor(frameIndex / 4);
-            
-            const sx = col * animalData.frameWidth;
-            const sy = row * animalData.frameHeight;
-            
-            ctx.drawImage(
-                spriteImg,
-                sx, sy,
-                animalData.frameWidth,
-                animalData.frameHeight,
-                x, y,
-                animalData.frameWidth,
-                animalData.frameHeight
-            );
-        }
-
-        // ════════════════════════════════════════════════════════════
-        // MODAL FUNCTIONS
-        // ════════════════════════════════════════════════════════════
-
-        function showModal() {
-            document.getElementById("modal-overlay").classList.remove("hidden");
-        }
-
-        function closeModal() {
-            document.getElementById("modal-overlay").classList.add("hidden");
-            if (document.getElementById("dontShowAgain").checked) {
-                localStorage.setItem("basePlannerDontShowModal", "true");
-            }
-        }
-
-        function toggleDontShowAgain() {
-            if (document.getElementById("dontShowAgain").checked) {
-                localStorage.setItem("basePlannerDontShowModal", "true");
-            } else {
-                localStorage.removeItem("basePlannerDontShowModal");
-            }
-        }
-
-        if (!localStorage.getItem("basePlannerDontShowModal")) {
-            document.getElementById("modal-overlay").classList.remove("hidden");
-        } else {
-            document.getElementById("modal-overlay").classList.add("hidden");
-        }
-
-        // ════════════════════════════════════════════════════════════
-        // MAIN APPLICATION
-        // ════════════════════════════════════════════════════════════
-
         const TILE = 16;
 
         const BUILD = [
-            // ── Structures ──────────────────────────────────────────
+            // ── Structures ────────────────────────────────���─────────
             {cat: "Structures", name: "Arrow Tower", spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}, wall: true},
             {cat: "Structures", name: "Duel Statue", spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}, wall: true},
             {cat: "Structures", name: "Stone Wall", spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}, wall: true},
@@ -824,17 +542,6 @@
             {cat: "Furniture", name: "Bookcase", spr: 112, img: 112, build: true, mats: {wood: 200, gold: 5}},
             {cat: "Furniture", name: "Trading Counter", spr: 41, img: 41, build: true, mats: {wood: 50, silver: 10, gold: 5}},
             {cat: "Furniture", name: "Golden Candlestick", spr: 78, img: 78, anim: true, off: 4, build: true, mats: {bronze: 20, flint: 5, gold: 5}},
-
-            // ── Animals ─────────────────────────────────────────────
-            {cat: "Animals", name: "Cow", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/2.png?v=5.0.9", mats: {}},
-            {cat: "Animals", name: "Chicken", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/5.png?v=5.0.9", mats: {}},
-            {cat: "Animals", name: "Sheep", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/8.png?v=5.0.9", mats: {}},
-            {cat: "Animals", name: "Cat (White)", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/131.png?v=5.0.9", mats: {}},
-            {cat: "Animals", name: "Cat (Orange)", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/67.png?v=5.0.9", mats: {}},
-            {cat: "Animals", name: "Cat (Black)", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/132.png?v=5.0.9", mats: {}},
-            {cat: "Animals", name: "Dog (Golden)", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/19.png?v=5.0.9", mats: {}},
-            {cat: "Animals", name: "Dog (Black)", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/133.png?v=5.0.9", mats: {}},
-            {cat: "Animals", name: "Dog (Grey)", build: true, animal: true, spriteUrl: "https://www.mysteralegacy.com/data/monsters/134.png?v=5.0.9", mats: {}},
 
             // ── Miscellaneous Items ──────────────────────────────────────
             {cat: "Miscellaneous Items", name: "Tomato", spr: 82, img: 82, build: true, mats: {}},
@@ -910,6 +617,31 @@
         const program = gl.createProgram();
         const build = {};
         const floor = {};
+
+        function showModal() {
+            document.getElementById("modal-overlay").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("modal-overlay").classList.add("hidden");
+            if (document.getElementById("dontShowAgain").checked) {
+                localStorage.setItem("basePlannerDontShowModal", "true");
+            }
+        }
+
+        function toggleDontShowAgain() {
+            if (document.getElementById("dontShowAgain").checked) {
+                localStorage.setItem("basePlannerDontShowModal", "true");
+            } else {
+                localStorage.removeItem("basePlannerDontShowModal");
+            }
+        }
+
+        if (!localStorage.getItem("basePlannerDontShowModal")) {
+            document.getElementById("modal-overlay").classList.remove("hidden");
+        } else {
+            document.getElementById("modal-overlay").classList.add("hidden");
+        }
 
         function mouse() {
             const rect = canvas.getBoundingClientRect();
@@ -1077,34 +809,13 @@
                         }
 
                         const wall = build[add(x, y)];
-                        if (wall && !wall.animal) {
+                        if (wall) {
                             const sx = (wall.img % 16) * 16;
                             const sy = Math.floor(wall.img / 16) * 16;
                             offCtx.drawImage(tileImg, sx, sy, 16, wall.height * 8, px, py - (wall.height - 1) * 8, 16, wall.height * 16);
                         }
                     }
                 }
-
-                // ✨ RENDER ANIMALS WITH ORIENTATION
-                const animals = Object.entries(build).filter(([, v]) => v.animal);
-                animals.forEach(([key, animal]) => {
-                    const [ax, ay] = key.split(" ").map(Number);
-                    const px = (ax - minX) * 16;
-                    const py = (ay - minY) * 16;
-
-                    const animalData = ANIMALS_DATA.find(a => a.spriteUrl === animal.spriteUrl);
-                    if (animalData) {
-                        const nearestGate = findNearestAnimalGate(ax, ay, build);
-                        let direction = "down";
-                        
-                        if (nearestGate) {
-                            direction = getAnimalDirection(ax, ay, nearestGate.x, nearestGate.y);
-                        }
-
-                        const frameIndex = getAnimalFrameIndex(animalData, direction);
-                        renderAnimalToCanvas(offCtx, animalData, frameIndex, px, py);
-                    }
-                });
 
                 let finalCanvas = offCanvas;
 
@@ -1521,4 +1232,12 @@ ${mats}
                 document.getElementById("fileInput").value = "";
             };
 
-            tiles~~*
+            tiles.src = "map.png";
+
+            setInterval(render, 32);
+        }
+
+        start();
+    </script>
+</body>
+</html>
