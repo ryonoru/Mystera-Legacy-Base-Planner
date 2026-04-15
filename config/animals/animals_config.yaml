@@ -1,7 +1,0 @@
-animals:
-  - name: "Wolf"
-    habitat: "Forest"
-    diet: "Carnivore"
-  - name: "Deer"
-    habitat: "Meadow"
-    diet: "Herbivore"
