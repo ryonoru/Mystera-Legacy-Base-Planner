@@ -43,10 +43,12 @@
             border: 1px solid #444;
             border-radius: 6px;
             padding: 30px;
-            max-width: 500px;
-            max-height: 80vh;
+            max-width: 550px;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            scrollbar-width: thin;
+            scrollbar-color: #444 transparent;
         }
 
         #modal .subtitle {
@@ -60,7 +62,7 @@
 
         #modal h1 {
             color: #fff;
-            font-size: 24px;
+            font-size: 26px;
             margin: 0 0 15px 0;
             text-align: left;
         }
@@ -77,25 +79,63 @@
         #modal .description {
             color: #aaa;
             font-size: 11px;
-            line-height: 1.6;
+            line-height: 1.7;
             margin: 15px 0;
             text-align: left;
         }
 
+        #modal .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+            font-size: 10px;
+            color: #999;
+        }
+
+        #modal .checkbox-wrapper input {
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+        }
+
+        #modal .btn-group {
+            display: flex;
+            gap: 6px;
+            margin: 20px 0 0 0;
+        }
+
         #modal .close-btn {
-            display: block;
-            margin: 20px auto 0;
-            padding: 8px 20px;
+            flex: 1;
+            padding: 8px 12px;
             background: #1a3050;
             border: 1px solid #2a5080;
             color: #7df;
             cursor: pointer;
             border-radius: 4px;
             font-size: 11px;
+            transition: all .15s;
         }
 
         #modal .close-btn:hover {
             background: #1e3d66;
+            border-color: #5af;
+        }
+
+        #btnHelp {
+            padding: 6px 10px;
+            background: #2e2e2e;
+            border: 1px solid #3a3a3a;
+            color: #ccc;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 10px;
+            transition: all .15s;
+        }
+
+        #btnHelp:hover {
+            background: #3a3a3a;
+            color: #fff;
             border-color: #5af;
         }
 
@@ -107,7 +147,11 @@
             border-radius: 4px;
             display: none;
             z-index: 999;
-            min-width: 150px;
+            min-width: 180px;
+            max-height: 200px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #444 transparent;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
@@ -116,7 +160,7 @@
         .export-popup button {
             display: block;
             width: 100%;
-            padding: 8px 10px;
+            padding: 10px 12px;
             background: transparent;
             border: none;
             border-bottom: 1px solid #333;
@@ -148,6 +192,13 @@
             padding: 10px 12px 8px;
             background: #1e1e1e;
             border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        #panel-header .header-content {
+            flex: 1;
         }
 
         #panel-header h2 {
@@ -161,6 +212,21 @@
             margin: 0;
             font-size: 10px;
             color: #666;
+        }
+
+        #btnHelp {
+            padding: 4px 6px;
+            font-size: 12px;
+            background: transparent;
+            border: 1px solid #3a3a3a;
+            color: #7df;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        #btnHelp:hover {
+            border-color: #5af;
+            background: #1a2a3a;
         }
 
         /* ── Scrollable item list ─────────────────── */
@@ -193,7 +259,7 @@
 
         .cat-label:hover { color: #ccc; border-color: #5af; }
         .cat-label .toggle { font-size: 12px; font-weight: bold; }
-        .cat-label.collapsed + .cat-group { display: none; }
+        .cat-label.collapsed + .cat-group { display: none !important; }
 
         .cat-group {
             display: grid;
@@ -244,11 +310,12 @@
             background: #1e1e1e;
             display: flex;
             flex-direction: column;
+            min-height: 280px;
         }
 
         /* ── Materials ──────────────────────────────── */
         #mats-wrap {
-            flex: 1 1 0;
+            flex: 1.5 1 0;
             padding: 8px 10px;
             border-bottom: 1px solid #2a2a2a;
             overflow-y: auto;
@@ -267,12 +334,13 @@
         #mats {
             color: #ccc;
             margin: 0;
-            font-size: 11px;
+            font-size: 10px;
+            line-height: 1.5;
         }
 
         /* ── Base size ──────────────────────────────── */
         #size-wrap {
-            padding: 6px 10px;
+            padding: 8px 10px;
             border-bottom: 1px solid #2a2a2a;
             display: flex;
             align-items: center;
@@ -290,16 +358,18 @@
         #size-val {
             font-size: 12px;
             color: #7df;
+            font-weight: bold;
         }
 
         /* ── Save / Load section ────────────────────── */
         #save-section {
-            flex: 0 0 auto;
+            flex: 1 1 0;
             padding: 10px;
             display: flex;
             flex-direction: column;
             gap: 6px;
             border-top: 1px solid #2a2a2a;
+            margin-bottom: 20px;
         }
 
         #baseName {
@@ -323,7 +393,7 @@
 
         .btn {
             flex: 1;
-            padding: 6px 8px;
+            padding: 7px 8px;
             font-family: monospace;
             font-size: 10px;
             cursor: pointer;
@@ -390,7 +460,13 @@
 
                 Aproveite bem o planejador! 🎮
             </div>
-            <button class="close-btn" onclick="document.getElementById('modal-overlay').classList.add('hidden')">Fechar</button>
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="dontShowAgain" onchange="toggleDontShowAgain()">
+                <label for="dontShowAgain">Não mostrar novamente</label>
+            </div>
+            <div class="btn-group">
+                <button class="close-btn" onclick="closeModal()">Fechar</button>
+            </div>
         </div>
     </div>
 
@@ -403,8 +479,11 @@
 
     <div id="left">
         <div id="panel-header">
-            <h2>Mystera Legacy — Base Planner</h2>
-            <p>Clique esquerdo coloca · Direito apaga · Shift preenche</p>
+            <div class="header-content">
+                <h2>Mystera Legacy — Base Planner</h2>
+                <p>Clique esquerdo coloca · Direito apaga · Shift preenche</p>
+            </div>
+            <button id="btnHelp" onclick="showModal()" title="Ver tutorial">?</button>
         </div>
 
         <div id="list-wrap">
@@ -443,7 +522,6 @@
     <script>
         const TILE = 16;
         const BUILD = [
-            // ── Structures ──────────────────────────────────────────
             {cat: "Structures", name: "Arrow Tower", spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}, wall: true},
             {cat: "Structures", name: "Duel Statue", spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}, wall: true},
             {cat: "Structures", name: "Stone Wall", spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}, wall: true},
@@ -452,7 +530,8 @@
             {cat: "Structures", name: "Personal Gate", spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
             {cat: "Structures", name: "Tribe Gate", spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
             {cat: "Structures", name: "Tribe Vault", spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
-            {cat: "Structures", name: "Walled Tree", spr: 43, img: 43, alt: true, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
+            {cat: "Structures", name: "Walled Tree (Small)", spr: 43, img: 43, height: 2, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
+            {cat: "Structures", name: "Walled Tree (Large)", spr: 44, img: 44, height: 3, build: true, mats: {stone: 30, clay: 15, dirt: 15}},
             {cat: "Structures", name: "Stone Anvil", spr: 61, img: 61, build: true, mats: {stone: 400, silver: 10}},
             {cat: "Structures", name: "Garbage Bin", spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
             {cat: "Structures", name: "Bellows", spr: 62, img: 62, build: true, mats: {stone: 250, clay: 150, charcoal: 8, silver: 10}},
@@ -540,11 +619,37 @@
         const canvas = document.querySelector("canvas");
         const gl = canvas.getContext("webgl2");
         const worker = new Worker("worker.js");
+        const heightMap = {};
 
-        const state = {x: 0, y: 0, zoom: TILE * 2, quickStart: null, ctrl: false, shift: false, alt: false};
+        const state = {x: 0, y: 0, zoom: TILE * 2, quickStart: null, shift: false, alt: false};
         const program = gl.createProgram();
         const build = {};
         const floor = {};
+
+        function showModal() {
+            document.getElementById("modal-overlay").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("modal-overlay").classList.add("hidden");
+            if (document.getElementById("dontShowAgain").checked) {
+                localStorage.setItem("basePlannerDontShowModal", "true");
+            }
+        }
+
+        function toggleDontShowAgain() {
+            if (document.getElementById("dontShowAgain").checked) {
+                localStorage.setItem("basePlannerDontShowModal", "true");
+            } else {
+                localStorage.removeItem("basePlannerDontShowModal");
+            }
+        }
+
+        if (!localStorage.getItem("basePlannerDontShowModal")) {
+            document.getElementById("modal-overlay").classList.remove("hidden");
+        } else {
+            document.getElementById("modal-overlay").classList.add("hidden");
+        }
 
         function mouse() {
             const rect = canvas.getBoundingClientRect();
@@ -565,9 +670,7 @@
             const steps = Math.max(Math.abs(endX - startX), Math.abs(endY - startY));
 
             for (let i = 0; i <= steps; i++) {
-                const x = startX + dx * i;
-                const y = startY + dy * i;
-                cells.push({x, y});
+                cells.push({x: startX + dx * i, y: startY + dy * i});
             }
             return cells;
         }
@@ -587,19 +690,41 @@
             return cells;
         }
 
+        function canPlace(x, y, item) {
+            if (!item.height) return true;
+            const key = add(x, y);
+            return !heightMap[key] || heightMap[key] < 1;
+        }
+
+        function placeItem(x, y, item) {
+            const key = add(x, y);
+            if (!item.height) return true;
+            
+            const requiredHeight = item.height;
+            if (heightMap[key] && heightMap[key] >= requiredHeight) return false;
+            
+            heightMap[key] = requiredHeight;
+            return true;
+        }
+
         function placeMultiple(cells, item, isErase = false) {
             cells.forEach(({x, y}) => {
-                const i = add(x, y);
+                const key = add(x, y);
+                
                 if (isErase) {
-                    delete build[i];
-                    delete floor[i];
+                    delete build[key];
+                    delete floor[key];
+                    delete heightMap[key];
                 } else if (state.select) {
                     if (item.build) {
-                        if (floor[i] && floor[i].block) delete floor[i];
-                        build[i] = item;
+                        if (floor[key] && floor[key].block) delete floor[key];
+                        if (canPlace(x, y, item)) {
+                            build[key] = item;
+                            placeItem(x, y, item);
+                        }
                     } else {
-                        if (build[i] && item.block) delete build[i];
-                        floor[i] = item;
+                        if (build[key] && item.block) delete build[key];
+                        floor[key] = item;
                     }
                 }
             });
@@ -608,29 +733,25 @@
             updateSize();
         }
 
-        function place(isQuick = false) {
+        function place() {
             if (!state.select) return false;
 
             const [mx, my] = mouse();
-            const i = add(mx, my);
+            const key = add(mx, my);
 
-            if (state.ctrl == 3 || state.rightClick) {
-                delete build[i];
-                delete floor[i];
-            } else if (!isQuick) {
-                if (state.select.build) {
-                    if (floor[i] && floor[i].block) delete floor[i];
-                    build[i] = state.select;
-                } else {
-                    if (build[i] && state.select.block) delete build[i];
-                    floor[i] = state.select;
+            if (state.select.build) {
+                if (floor[key] && floor[key].block) delete floor[key];
+                if (canPlace(mx, my, state.select)) {
+                    build[key] = state.select;
+                    placeItem(mx, my, state.select);
                 }
+            } else {
+                if (build[key] && state.select.block) delete build[key];
+                floor[key] = state.select;
             }
 
-            if (!isQuick) {
-                worker.postMessage({floor, build});
-                updateSize();
-            }
+            worker.postMessage({floor, build});
+            updateSize();
             return true;
         }
 
@@ -650,7 +771,7 @@
         function toggleExportPopup(e) {
             const popup = document.getElementById("export-popup");
             const rect = e.target.getBoundingClientRect();
-            popup.style.left = rect.left + "px";
+            popup.style.left = (rect.left - 60) + "px";
             popup.style.top = (rect.bottom + 5) + "px";
             popup.classList.toggle("active");
         }
@@ -678,32 +799,25 @@
                 maxY = Math.max(...ys) + 1;
             }
 
-            const baseW = (maxX - minX) * 16;
-            const baseH = (maxY - minY) * 16;
-            const legendH = withLegend ? 200 : 0;
+            const baseW = (maxX - minX + 1) * 16;
+            const baseH = (maxY - minY + 1) * 16;
+            const legendH = withLegend ? 220 : 0;
 
             const offCanvas = document.createElement("canvas");
             const offCtx = offCanvas.getContext("2d");
 
-            if (withLegend) {
-                offCanvas.width = 1080;
-                offCanvas.height = Math.max(baseH + 250, 1080);
-            } else {
-                offCanvas.width = baseW;
-                offCanvas.height = baseH;
-            }
+            offCanvas.width = withLegend ? 1080 : baseW;
+            offCanvas.height = baseH + legendH;
 
             offCtx.fillStyle = "#1a1a1a";
             offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
 
-            // Draw base
-            offCtx.fillStyle = "#242424";
-            if (withLegend) {
-                offCtx.fillRect(0, 0, offCanvas.width, baseH);
-            }
+            // Draw base area
+            offCtx.fillStyle = "#333";
+            offCtx.fillRect(0, 0, baseW, baseH);
 
-            // Draw grid and tiles
-            offCtx.strokeStyle = "rgba(100, 100, 100, 0.2)";
+            // Draw grid
+            offCtx.strokeStyle = "rgba(100, 100, 100, 0.3)";
             offCtx.lineWidth = 0.5;
 
             for (let x = minX; x <= maxX; x++) {
@@ -715,67 +829,70 @@
 
                     const tile = floor[add(x, y)];
                     if (tile) {
-                        offCtx.fillStyle = "#333";
+                        offCtx.fillStyle = "#2a2a2a";
                         offCtx.fillRect(px, py, 16, 16);
                     }
 
                     const wall = build[add(x, y)];
                     if (wall) {
                         offCtx.fillStyle = "#555";
-                        offCtx.fillRect(px, py, 14, 14);
-                        offCtx.fillStyle = "#fff";
-                        offCtx.font = "8px monospace";
-                        offCtx.fillText(wall.name[0], px + 5, py + 10);
+                        offCtx.fillRect(px + 1, py + 1, 14, 14);
+                        offCtx.fillStyle = "#aaa";
+                        offCtx.font = "bold 8px monospace";
+                        offCtx.textAlign = "center";
+                        offCtx.fillText(wall.name[0], px + 8, py + 10);
                     }
                 }
             }
 
             // Draw legend
             if (withLegend) {
-                offCtx.fillStyle = "#1e1e1e";
+                offCtx.fillStyle = "#242424";
                 offCtx.fillRect(0, baseH, offCanvas.width, legendH);
 
                 offCtx.fillStyle = "#fff";
-                offCtx.font = "bold 20px monospace";
+                offCtx.font = "bold 22px monospace";
+                offCtx.textAlign = "left";
                 offCtx.fillText(document.getElementById("baseName").value || "Unnamed Base", 20, baseH + 35);
 
                 const sizeText = document.getElementById("size-val").textContent;
                 const now = new Date().toLocaleDateString();
                 offCtx.fillStyle = "#aaa";
-                offCtx.font = "12px monospace";
-                offCtx.fillText(`${sizeText} · ${now}`, 20, baseH + 60);
+                offCtx.font = "11px monospace";
+                offCtx.fillText(`${sizeText} · ${now}`, 20, baseH + 58);
 
                 offCtx.strokeStyle = "#555";
                 offCtx.lineWidth = 1;
-                offCtx.strokeRect(20, baseH + 75, offCanvas.width - 40, 35);
+                offCtx.strokeRect(20, baseH + 70, offCanvas.width - 40, 35);
                 offCtx.fillStyle = "#888";
-                offCtx.font = "10px monospace";
-                offCtx.fillText("Coded by GreyHope / Updated by Darot", 30, baseH + 95);
-                offCtx.fillText("Materials calculator for Mystera Legacy", 30, baseH + 108);
+                offCtx.font = "9px monospace";
+                offCtx.fillText("Coded by GreyHope / Updated by Darot", 30, baseH + 87);
+                offCtx.fillText("Materials calculator for Mystera Legacy", 30, baseH + 99);
 
                 const mats = document.getElementById("mats").textContent;
                 const matLines = mats.split("\n").filter(l => l.trim());
                 offCtx.fillStyle = "#ccc";
-                offCtx.font = "10px monospace";
+                offCtx.font = "9px monospace";
 
                 let xCol = 20;
-                let yOffset = baseH + 130;
+                let yOffset = baseH + 120;
                 let colCount = 0;
 
-                matLines.forEach((line, i) => {
+                matLines.forEach((line) => {
                     if (colCount >= 10) {
-                        xCol += 350;
+                        xCol += 320;
                         colCount = 0;
-                        yOffset = baseH + 130;
+                        yOffset = baseH + 120;
                     }
+                    offCtx.textAlign = "left";
                     offCtx.fillText(line, xCol, yOffset);
-                    yOffset += 14;
+                    yOffset += 12;
                     colCount++;
                 });
             }
 
             const link = document.createElement("a");
-            link.href = offCanvas.toDataURL("image/jpeg", 0.9);
+            link.href = offCanvas.toDataURL("image/jpeg", 0.92);
             link.download = (document.getElementById("baseName").value || "base_design") + ".jpg";
             link.click();
         }
@@ -919,7 +1036,7 @@ ${mats}
                     }
                 }
 
-                if (state.select && state.ctrl != 3) {
+                if (state.select) {
                     const [mx, my] = mouse();
                     const [x, y] = loc(state.select.spr);
 
@@ -945,15 +1062,20 @@ ${mats}
             };
 
             canvas.onmousedown = e => {
-                state.ctrl = e.which;
                 e.preventDefault();
-
                 const [mx, my] = mouse();
 
                 if (state.shift) {
-                    state.quickStart = {x: mx, y: my, alt: state.alt};
-                } else if (!state.shift) {
+                    state.quickStart = {x: mx, y: my};
+                } else if (e.which === 1) {
                     place();
+                } else if (e.which === 3) {
+                    const key = add(mx, my);
+                    delete build[key];
+                    delete floor[key];
+                    delete heightMap[key];
+                    worker.postMessage({floor, build});
+                    updateSize();
                 }
 
                 render();
@@ -963,7 +1085,7 @@ ${mats}
                 state.mx = e.clientX;
                 state.my = e.clientY;
 
-                if (state.ctrl && !state.shift && !place()) {
+                if (e.buttons === 2 && !state.shift) {
                     state.x += e.movementX / state.zoom;
                     state.y += e.movementY / state.zoom;
                     update();
@@ -984,7 +1106,6 @@ ${mats}
                     }
                 }
 
-                state.ctrl = false;
                 state.quickStart = null;
                 render();
             };
@@ -998,6 +1119,8 @@ ${mats}
                 if (e.key === "Shift") state.shift = false;
                 if (e.key === "Alt") state.alt = false;
             });
+
+            document.addEventListener("contextmenu", e => e.preventDefault());
 
             new ResizeObserver(() => {
                 canvas.width = canvas.clientWidth;
@@ -1023,12 +1146,18 @@ ${mats}
             const tooltip = document.getElementById("tooltip");
             const catStates = {};
 
+            // Inicializar categorias como collapsed
+            BUILD.forEach(item => {
+                if (item.cat && !catStates.hasOwnProperty(item.cat)) {
+                    catStates[item.cat] = true; // true = collapsed
+                }
+            });
+
             list.append(...BUILD.flatMap(item => {
                 const els = [];
 
                 if (item.cat && item.cat !== currentCat) {
                     currentCat = item.cat;
-                    if (!catStates[currentCat]) catStates[currentCat] = true;
 
                     const label = document.createElement("div");
                     label.className = "cat-label" + (catStates[currentCat] ? " collapsed" : "");
@@ -1109,10 +1238,9 @@ ${mats}
                 document.getElementById("fileInput").value = "";
             };
 
-            canvas.oncontextmenu = e => e.preventDefault();
             tiles.src = "map.png";
 
-            setInterval(render, 500);
+            setInterval(render, 32);
         }
 
         start();
