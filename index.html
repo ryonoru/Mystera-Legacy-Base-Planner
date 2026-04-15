@@ -1,1024 +1,1121 @@
-<!doctype html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1">
-        <meta name="description" content="Calculate the materials cost to build structures in the world of Mystera Legacy.">
-        <title>Mystera Legacy - Base Planner</title>
-        <style>
-            *, *::before, *::after { box-sizing: border-box }
-            html, body { height: 100%; margin: 0; }
-            body {
-                font-family: monospace;
-                display: flex;
-                background-color: #1a1a1a;
-                overflow: hidden;
-            }
-            canvas {
-                min-width: 0;
-                flex: 1 1 0;
-                image-rendering: crisp-edges;
-                user-select: none;
-                cursor: crosshair;
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystera Legacy - Base Planner</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; }
+        body {
+            font-family: monospace;
+            display: flex;
+            background-color: #1a1a1a;
+            overflow: hidden;
+        }
 
-            /* ── Quick Build Hint ─────────────────────── */
-            #quick-build-hint {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: rgba(26, 48, 80, 0.9);
-                border: 1px solid #5af;
-                color: #7df;
-                padding: 10px 15px;
-                border-radius: 4px;
-                font-size: 10px;
-                display: none;
-                z-index: 100;
-                pointer-events: none;
-            }
-            #quick-build-hint.active { display: block; }
+        canvas {
+            min-width: 0;
+            flex: 1 1 0;
+            image-rendering: crisp-edges;
+            user-select: none;
+            cursor: crosshair;
+        }
 
-            /* ── Left panel ─────────────────────────────── */
-            #left {
-                width: 300px;
-                flex: 0 0 300px;
-                display: flex;
-                flex-direction: column;
-                gap: 0;
-                background: #242424;
-                border-right: 1px solid #333;
-                overflow: hidden;
-            }
+        /* ── Pop-up Modal ─────────────────────────── */
+        #modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
 
-            #panel-header {
-                padding: 10px 12px 8px;
-                background: #1e1e1e;
-                border-bottom: 1px solid #333;
-            }
+        #modal-overlay.hidden { display: none; }
 
-            #panel-header h2 {
-                margin: 0 0 2px;
-                font-size: 13px;
-                color: #fff;
-                letter-spacing: .5px;
-            }
+        #modal {
+            background: #242424;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 30px;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
 
-            #panel-header p {
-                margin: 0;
-                font-size: 10px;
-                color: #666;
-            }
+        #modal .subtitle {
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: left;
+            margin-bottom: 5px;
+        }
 
-            /* ── Category with Collapse/Expand ─────────── */
-            .cat-label {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                grid-column: 1 / -1;
-                font-size: 10px;
-                font-weight: bold;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                color: #aaa;
-                background: #1e1e1e;
-                border: 1px solid #333;
-                border-radius: 4px;
-                padding: 4px 8px;
-                margin: 8px 0 4px;
-                cursor: pointer;
-                user-select: none;
-            }
+        #modal h1 {
+            color: #fff;
+            font-size: 24px;
+            margin: 0 0 15px 0;
+            text-align: left;
+        }
 
-            .cat-label:hover { color: #ccc; border-color: #5af; }
-            .cat-label .toggle { font-size: 12px; font-weight: bold; }
-            .cat-label.collapsed ~ .cat-group { display: none; }
+        #modal .credits {
+            border: 1px solid #555;
+            padding: 10px;
+            margin: 15px 0;
+            font-size: 10px;
+            color: #999;
+            text-align: center;
+        }
 
-            .cat-group { display: contents; }
+        #modal .description {
+            color: #aaa;
+            font-size: 11px;
+            line-height: 1.6;
+            margin: 15px 0;
+            text-align: left;
+        }
 
-            /* ── Scrollable item list ───────────────────── */
-            #list-wrap {
-                flex: 2 1 0;
-                overflow-y: auto;
-                padding: 8px;
-                scrollbar-width: thin;
-                scrollbar-color: #444 transparent;
-            }
+        #modal .close-btn {
+            display: block;
+            margin: 20px auto 0;
+            padding: 8px 20px;
+            background: #1a3050;
+            border: 1px solid #2a5080;
+            color: #7df;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 11px;
+        }
 
-            #list {
-                display: grid;
-                grid-template-columns: repeat(8, 1fr);
-                gap: 4px;
-            }
+        #modal .close-btn:hover {
+            background: #1e3d66;
+            border-color: #5af;
+        }
 
-            #list .item-btn {
-                cursor: pointer;
-                border-radius: 3px;
-                image-rendering: crisp-edges;
-                width: 28px;
-                height: 28px;
-                background-image: url("map.png");
-                background-size: 448px 224px;
-                background-color: #2e2e2e;
-                border: 1px solid #3a3a3a;
-                transition: border-color .1s, background-color .1s;
-            }
+        /* ── Export Popup ─────────────────────────── */
+        .export-popup {
+            position: absolute;
+            background: #242424;
+            border: 1px solid #444;
+            border-radius: 4px;
+            display: none;
+            z-index: 999;
+            min-width: 150px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
 
-            #list .item-btn:hover,
-            #list .item-btn:focus {
-                outline: none;
-                border-color: #5af;
-                background-color: #1a2a3a;
-            }
+        .export-popup.active { display: block; }
 
-            /* ── Tooltip ────────────────────────────────── */
-            #tooltip {
-                position: fixed;
-                z-index: 999;
-                background: #111;
-                color: #eee;
-                border: 1px solid #555;
-                border-radius: 4px;
-                padding: 3px 8px;
-                font-size: 11px;
-                pointer-events: none;
-                white-space: nowrap;
-                display: none;
-            }
+        .export-popup button {
+            display: block;
+            width: 100%;
+            padding: 8px 10px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #333;
+            color: #ccc;
+            cursor: pointer;
+            text-align: left;
+            font-size: 10px;
+            transition: all .15s;
+        }
 
-            /* ── Bottom info panel ──────────────────────── */
-            #bottom {
-                flex: 0 0 auto;
-                border-top: 1px solid #333;
-                background: #1e1e1e;
-                display: flex;
-                flex-direction: column;
-                min-height: 200px;
-            }
+        .export-popup button:last-child { border-bottom: none; }
+        .export-popup button:hover {
+            background: #1a3050;
+            color: #7df;
+        }
 
-            /* ── Materials ──────────────────────────────── */
-            #mats-wrap {
-                flex: 2 1 0;
-                padding: 8px 10px;
-                border-bottom: 1px solid #2a2a2a;
-                overflow-y: auto;
-                scrollbar-width: thin;
-                scrollbar-color: #444 transparent;
-            }
+        /* ── Left panel ─────────────────────────────── */
+        #left {
+            width: 300px;
+            flex: 0 0 300px;
+            display: flex;
+            flex-direction: column;
+            background: #242424;
+            border-right: 1px solid #333;
+            overflow: hidden;
+        }
 
-            #mats-label {
-                font-size: 10px;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                color: #666;
-                margin-bottom: 4px;
-            }
+        #panel-header {
+            padding: 10px 12px 8px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
 
-            #mats {
-                color: #ccc;
-                margin: 0;
-                font-size: 11px;
-            }
+        #panel-header h2 {
+            margin: 0 0 2px 0;
+            font-size: 13px;
+            color: #fff;
+            letter-spacing: .5px;
+        }
 
-            /* ── Base size ──────────────────────────────── */
-            #size-wrap {
-                padding: 6px 10px;
-                border-bottom: 1px solid #2a2a2a;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                font-size: 10px;
-            }
+        #panel-header p {
+            margin: 0;
+            font-size: 10px;
+            color: #666;
+        }
 
-            #size-label {
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                color: #666;
-                white-space: nowrap;
-            }
+        /* ── Scrollable item list ─────────────────── */
+        #list-wrap {
+            flex: 1 1 0;
+            overflow-y: auto;
+            padding: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: #444 transparent;
+        }
 
-            #size-val {
-                font-size: 12px;
-                color: #7df;
-            }
+        .cat-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 6px 8px;
+            margin: 8px 0 4px 0;
+            cursor: pointer;
+            user-select: none;
+            transition: all .15s;
+        }
 
-            /* ── Save / Load section ────────────────────── */
-            #save-section {
-                flex: 1 1 0;
-                padding: 8px 10px;
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-                overflow-y: auto;
-                scrollbar-width: thin;
-                scrollbar-color: #444 transparent;
-            }
+        .cat-label:hover { color: #ccc; border-color: #5af; }
+        .cat-label .toggle { font-size: 12px; font-weight: bold; }
+        .cat-label.collapsed + .cat-group { display: none; }
 
-            #baseName {
-                padding: 5px 8px;
-                font-family: monospace;
-                font-size: 11px;
-                background: #2a2a2a;
-                border: 1px solid #3a3a3a;
-                border-radius: 4px;
-                color: #eee;
-                outline: none;
-                width: 100%;
-            }
+        .cat-group {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
 
-            #baseName:focus { border-color: #5af; }
+        #list .item-btn {
+            cursor: pointer;
+            border-radius: 3px;
+            image-rendering: crisp-edges;
+            width: 28px;
+            height: 28px;
+            background-image: url("map.png");
+            background-size: 448px 224px;
+            background-color: #2e2e2e;
+            border: 1px solid #3a3a3a;
+            transition: border-color .1s, background-color .1s;
+        }
 
-            .export-toggle {
-                display: flex;
-                gap: 4px;
-                font-size: 9px;
-            }
+        #list .item-btn:hover,
+        #list .item-btn:focus {
+            outline: none;
+            border-color: #5af;
+            background-color: #1a2a3a;
+        }
 
-            .export-toggle button {
-                flex: 1;
-                padding: 4px;
-                background: #2e2e2e;
-                border: 1px solid #3a3a3a;
-                color: #999;
-                cursor: pointer;
-                border-radius: 3px;
-                transition: all .1s;
-            }
+        /* ── Tooltip ────────────────────────────────── */
+        #tooltip {
+            position: fixed;
+            z-index: 999;
+            background: #111;
+            color: #eee;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 11px;
+            pointer-events: none;
+            white-space: nowrap;
+            display: none;
+        }
 
-            .export-toggle button.active {
-                background: #1a3050;
-                border-color: #5af;
-                color: #7df;
-            }
+        /* ── Bottom info panel ─────────────────────── */
+        #bottom {
+            flex: 0 0 auto;
+            border-top: 1px solid #333;
+            background: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+        }
 
-            .btn-row {
-                display: flex;
-                gap: 5px;
-            }
+        /* ── Materials ──────────────────────────────── */
+        #mats-wrap {
+            flex: 1 1 0;
+            padding: 8px 10px;
+            border-bottom: 1px solid #2a2a2a;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #444 transparent;
+        }
 
-            .btn {
-                flex: 1;
-                padding: 5px 6px;
-                font-family: monospace;
-                font-size: 10px;
-                cursor: pointer;
-                border-radius: 4px;
-                border: 1px solid #3a3a3a;
-                background: #2e2e2e;
-                color: #ccc;
-                transition: background .15s, color .15s, border-color .15s;
-            }
+        #mats-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 4px;
+        }
 
-            .btn:hover {
-                background: #3a3a3a;
-                color: #fff;
-                border-color: #5af;
-            }
+        #mats {
+            color: #ccc;
+            margin: 0;
+            font-size: 11px;
+        }
 
-            .btn.accent {
-                background: #1a3050;
-                border-color: #2a5080;
-                color: #7df;
-            }
+        /* ── Base size ──────────────────────────────── */
+        #size-wrap {
+            padding: 6px 10px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+        }
 
-            .btn.accent:hover {
-                background: #1e3d66;
-                border-color: #5af;
-                color: #aef;
-            }
+        #size-label {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            white-space: nowrap;
+        }
 
-            /* ── Footer ─────────────────────────────────── */
-            #footer {
-                padding: 5px 10px;
-                font-size: 9px;
-                color: #444;
-                border-top: 1px solid #2a2a2a;
-            }
+        #size-val {
+            font-size: 12px;
+            color: #7df;
+        }
 
-            #footer span { color: #666 }
-        </style>
-    </head>
+        /* ── Save / Load section ────────────────────── */
+        #save-section {
+            flex: 0 0 auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-top: 1px solid #2a2a2a;
+        }
 
-    <body>
-        <div id="tooltip"></div>
-        <div id="quick-build-hint">Shift + Drag: Linha/Retângulo</div>
+        #baseName {
+            padding: 6px 8px;
+            font-family: monospace;
+            font-size: 11px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            color: #eee;
+            outline: none;
+            width: 100%;
+        }
 
-        <div id="left">
-            <div id="panel-header">
-                <h2>Mystera Legacy — Base Planner</h2>
-                <p>Left click place · Right click erase · Shift drag build</p>
+        #baseName:focus { border-color: #5af; }
+
+        .btn-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 6px 8px;
+            font-family: monospace;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 1px solid #3a3a3a;
+            background: #2e2e2e;
+            color: #ccc;
+            transition: all .15s;
+            position: relative;
+        }
+
+        .btn:hover {
+            background: #3a3a3a;
+            color: #fff;
+            border-color: #5af;
+        }
+
+        .btn.accent {
+            background: #1a3050;
+            border-color: #2a5080;
+            color: #7df;
+        }
+
+        .btn.accent:hover {
+            background: #1e3d66;
+            border-color: #5af;
+            color: #aef;
+        }
+
+        /* ── Footer ─────────────────────────────────── */
+        #footer {
+            padding: 6px 10px;
+            font-size: 9px;
+            color: #444;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        #footer span { color: #666; }
+    </style>
+</head>
+
+<body>
+    <div id="modal-overlay">
+        <div id="modal">
+            <div class="subtitle">Welcome to</div>
+            <h1>Mystera Legacy<br>Base Planner</h1>
+            <div class="credits">Coded by GreyHope / Updated by Darot</div>
+            <div class="description">
+                <strong>O que é?</strong><br>
+                Um planejador de bases para Mystera Legacy que calcula automaticamente o custo em materiais de suas construções.<br><br>
+
+                <strong>Como usar?</strong><br>
+                1. Selecione um item na esquerda<br>
+                2. Clique esquerdo para colocar<br>
+                3. Clique direito para remover<br>
+                4. Shift + clique para preencher linhas/retângulos<br>
+                5. Shift + Alt + clique para apagar em padrão<br><br>
+
+                <strong>Salvando seu projeto?</strong><br>
+                • Nomeie seu projeto no campo de texto<br>
+                • Use "💾 Save" para salvar como .json editável<br>
+                • Use "📂 Load" para carregar projeto anterior<br>
+                • Use "Export" para gerar imagem ou texto<br><br>
+
+                Aproveite bem o planejador! 🎮
             </div>
+            <button class="close-btn" onclick="document.getElementById('modal-overlay').classList.add('hidden')">Fechar</button>
+        </div>
+    </div>
 
-            <div id="list-wrap">
-                <div id="list"></div>
-            </div>
+    <div id="tooltip"></div>
+    <div class="export-popup" id="export-popup">
+        <button onclick="exportProject('jpg-full')">📷 JPG Completo (com legenda)</button>
+        <button onclick="exportProject('jpg-image')">🖼️ Apenas Imagem (sem legenda)</button>
+        <button onclick="exportProject('txt')">📄 Lista de Materiais</button>
+    </div>
 
-            <div id="bottom">
-                <div id="mats-wrap">
-                    <div id="mats-label">Materials</div>
-                    <pre id="mats"></pre>
-                </div>
-
-                <div id="size-wrap">
-                    <div id="size-label">Base Size</div>
-                    <div id="size-val">—</div>
-                </div>
-
-                <div id="save-section">
-                    <input type="text" id="baseName" placeholder="Project name...">
-                    
-                    <div class="export-toggle">
-                        <button class="export-btn active" data-format="jpg">📷 JPG</button>
-                        <button class="export-btn" data-format="txt">📄 TXT</button>
-                    </div>
-
-                    <div class="btn-row">
-                        <button class="btn accent" id="btnSave">💾 Save</button>
-                        <button class="btn" id="btnLoad">📂 Load</button>
-                        <button class="btn" id="btnExport">Export</button>
-                    </div>
-
-                    <input type="file" id="fileInput" accept=".json" style="display:none">
-                </div>
-
-                <div id="footer">
-                    This is a materials calculator for Mystera Legacy · <span>Coded by GreyHope / Updated by Darot</span>
-                </div>
-            </div>
+    <div id="left">
+        <div id="panel-header">
+            <h2>Mystera Legacy — Base Planner</h2>
+            <p>Clique esquerdo coloca · Direito apaga · Shift preenche</p>
         </div>
 
-        <canvas></canvas>
+        <div id="list-wrap">
+            <div id="list"></div>
+        </div>
 
-        <script>
-            const TILE = 16
+        <div id="bottom">
+            <div id="mats-wrap">
+                <div id="mats-label">Materials</div>
+                <pre id="mats"></pre>
+            </div>
 
-            const BUILD = [
-                {cat: "Structures", name: "Arrow Tower",    spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}, wall: true},
-                {cat: "Structures", name: "Duel Statue",     spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}, wall: true},
-                {cat: "Structures", name: "Stone Wall",     spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}, wall: true},
-                {cat: "Structures", name: "Wood Wall",      spr: 26, img: 26, height: 2, build: true, mats: {wood: 20}, wall: true},
-                {cat: "Structures", name: "Animal Gate",    spr: 40, img: 40, build: true, door: true, mats: {wood: 20}},
-                {cat: "Structures", name: "Personal Gate",   spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
-                {cat: "Structures", name: "Tribe Gate",  spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
-                {cat: "Structures", name: "Tribe Vault",    spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
-                {cat: "Structures", name: "Walled Tree",        spr: 43, img: 43, alt: true, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
-                {cat: "Structures", name: "Stone Anvil",         spr: 61, img: 61, build: true, mats: {stone: 400, silver: 10}},
-                {cat: "Structures", name: "Garbage Bin",          spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
-                {cat: "Structures", name: "Bellows",          spr: 62, img: 62, build: true, mats: {stone: 250, clay: 150, charcoal: 8, silver: 10}},
-                {cat: "Structures", name: "Bloomery",      spr: 63, img: 63, build: true, mats: {wood: 30, silver: 5, hide: 6}},
-                {cat: "Structures", name: "Fire Pit",          spr: 77, img: 77, build: true, mats: {stone: 20, wood: 4, flint: 4, charcoal: 4}},
-                {cat: "Structures", name: "Stairs",           spr: 8, img: 8, build: true, mats: {stone: 100, clay: 20, gold: 1}},
-                {cat: "Structures", name: "Recall Tile",         spr: 24, img: 24, build: true, mats: {escape_lantern: 1, dragon_scale: 1, gold: 10}},
-                {cat: "Furniture", name: "Training Dummy",      spr: 58, img: 42, height: 2, build: true, mats: {wood: 50, tinder: 20, red_dye: 1}},
-                {cat: "Furniture", name: "Signpost",           spr: 59, img: 59, build: true, mats: {wood: 20}},
-                {cat: "Furniture", name: "Bed",             spr: 113, img: 81, height: 3, build: true, mats: {wood: 20, feather: 4, wool: 4}},
-                {cat: "Furniture", name: "Wooden Table",           spr: 60, img: 60, build: true, mats: {wood: 20}},
-                {cat: "Furniture", name: "Chair",           spr: 80, img: 80, build: true, mats: {wood: 10}},
-                {cat: "Furniture", name: "Empty Bookcase",       spr: 96, img: 96, build: true, mats: {wood: 200, gold: 5}},
-                {cat: "Furniture", name: "Bookcase",         spr: 112, img: 112, build: true, mats: {wood: 200, gold: 5}},
-                {cat: "Furniture", name: "Trading Counter",           spr: 41, img: 41, build: true, mats: {wood: 50, silver: 10, gold: 5}},
-                {cat: "Furniture", name: "Golden Candlestick",           spr: 78, img: 78, anim: true, off: 4, build: true, mats: {bronze: 20, flint: 5, gold: 5}},
-                {cat: "Miscellaneous Items", name: "Tomato",  spr: 82, img: 82, build: true, mats: {}},
-                {cat: "Miscellaneous Items", name: "Fish",  spr: 83, img: 83, build: true, mats: {}},
-                {cat: "Miscellaneous Items", name: "Malachite",  spr: 98, img: 98, build: true, mats: {}},
-                {cat: "Miscellaneous Items", name: "Cassiterite",  spr: 99, img: 99, build: true, mats: {}},
-                {cat: "Miscellaneous Items", name: "Wood",  spr: 114, img: 114, build: true, mats: {}},
-                {cat: "Miscellaneous Items", name: "Repair Kit",  spr: 115, img: 115, build: true, mats: {}},
-                {cat: "Miscellaneous Items", name: "Chest",       spr: 123, img: 123, build: true, mats: {}},
-                {cat: "Floors & Roads", name: "Ground",      spr: 2, img: 2, mats: {}},
-                {cat: "Floors & Roads", name: "Gravel Road", spr: 3, img: 3, block: true, mats: {stone: 5, clay: 1}},
-                {cat: "Floors & Roads", name: "Stone Road",spr: 4, img: 4, block: true, mats: {stone: 20}},
-                {cat: "Floors & Roads", name: "Clay Floor",  spr: 5, img: 5, mats: {clay: 5}},
-                {cat: "Floors & Roads", name: "Wood Floor", spr: 6, img: 6, mats: {wood: 10}},
-                {cat: "Floors & Roads", name: "Stone Floor",  spr: 7, img: 7, mats: {stone: 15}},
-                {cat: "Floors & Roads", name: "Deep Water",      spr: 21, img: 21, anim: true, block: true, mats: {}},
-                {cat: "Floors & Roads", name: "Shallow Water",       spr: 23, img: 23, block: true, mats: {}},
-                {cat: "Farming", name: "Spice",             spr: 68, img: 68, build: true, mats: {holly_seed: 1}},
-                {cat: "Farming", name: "Dye",         spr: 69, img: 69, build: true, mats: {dye_seed: 1}},
-                {cat: "Farming", name: "Salmoberry",        spr: 70, img: 70, build: true, mats: {salmoberry_seed: 1}},
-                {cat: "Farming", name: "Holly",        spr: 71, img: 71, build: true, mats: {holly_seed: 1}},
-                {cat: "Farming", name: "Carrot",            spr: 72, img: 72, build: true, mats: {carrot_seed: 1}},
-                {cat: "Farming", name: "Potato",            spr: 73, img: 73, build: true, mats: {potato: 1}},
-                {cat: "Farming", name: "Onion",             spr: 74, img: 74, build: true, mats: {onion_seed: 1}},
-                {cat: "Farming", name: "Lettuce",           spr: 75, img: 75, build: true, mats: {lettuce_seed: 1}},
-                {cat: "Farming", name: "Tomato",            spr: 76, img: 76, build: true, mats: {tomato_seed: 1}},
-                {cat: "Flowers", name: "Flower 1",  spr: 84,  img: 84,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 2",  spr: 85,  img: 85,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 3",  spr: 86,  img: 86,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 4",  spr: 87,  img: 87,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 5",  spr: 88,  img: 88,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 6",  spr: 89,  img: 89,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 7",  spr: 90,  img: 90,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 8",  spr: 91,  img: 91,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 9",  spr: 92,  img: 92,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 10", spr: 93,  img: 93,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 11", spr: 94,  img: 94,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 12", spr: 95,  img: 95,  build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 13", spr: 100, img: 100, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 14", spr: 101, img: 101, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 15", spr: 102, img: 102, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 16", spr: 103, img: 103, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 17", spr: 104, img: 104, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 18", spr: 105, img: 105, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 19", spr: 106, img: 106, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 20", spr: 107, img: 107, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 21", spr: 108, img: 108, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 22", spr: 109, img: 109, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 23", spr: 110, img: 110, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 24", spr: 111, img: 111, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 25", spr: 116, img: 116, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 26", spr: 117, img: 117, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 27", spr: 118, img: 118, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 28", spr: 119, img: 119, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 29", spr: 120, img: 120, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 30", spr: 121, img: 121, build: true, mats: {flower_seed: 1}},
-                {cat: "Flowers", name: "Flower 31", spr: 122, img: 122, build: true, mats: {flower_seed: 1}},
-            ]
+            <div id="size-wrap">
+                <div id="size-label">Base Size</div>
+                <div id="size-val">—</div>
+            </div>
 
-            const list = document.getElementById("list")
-            const canvas = document.querySelector("canvas")
-            const gl = canvas.getContext("webgl2")
-            const worker = new Worker("worker.js")
-            const hint = document.getElementById("quick-build-hint")
+            <div id="save-section">
+                <input type="text" id="baseName" placeholder="Nome do projeto...">
+                <div class="btn-row">
+                    <button class="btn accent" id="btnSave">💾 Save</button>
+                    <button class="btn" id="btnLoad">📂 Load</button>
+                    <button class="btn" id="btnExport" onclick="toggleExportPopup(event)">📤 Export</button>
+                </div>
+                <input type="file" id="fileInput" accept=".json" style="display:none">
+            </div>
 
-            const state = {x: 0, y: 0, zoom: TILE * 2, startX: null, startY: null, lastClickX: null, lastClickY: null}
-            const program = gl.createProgram()
-            const build = {}
-            const floor = {}
-            let exportFormat = "jpg"
+            <div id="footer">
+                Materials calculator · <span>GreyHope / Darot</span>
+            </div>
+        </div>
+    </div>
 
-            function mouse() {
-                const rect = canvas.getBoundingClientRect()
-                return [
-                    Math.round((state.mx - rect.left - canvas.width / 2) / state.zoom - state.x),
-                    Math.round((state.my - canvas.height / 2) / state.zoom - state.y)
-                ]
+    <canvas></canvas>
+
+    <script>
+        const TILE = 16;
+        const BUILD = [
+            // ── Structures ──────────────────────────────────────────
+            {cat: "Structures", name: "Arrow Tower", spr: 46, img: 14, anim: true, height: 3, build: true, mats: {stone: 80, obsidian: 20, gold: 1}, wall: true},
+            {cat: "Structures", name: "Duel Statue", spr: 45, img: 45, height: 3, build: true, mats: {stone: 100, bone: 20, gold: 15}, wall: true},
+            {cat: "Structures", name: "Stone Wall", spr: 25, img: 25, height: 2, build: true, mats: {stone: 30, clay: 10}, wall: true},
+            {cat: "Structures", name: "Wood Wall", spr: 26, img: 26, height: 2, build: true, mats: {wood: 20}, wall: true},
+            {cat: "Structures", name: "Animal Gate", spr: 40, img: 40, build: true, door: true, mats: {wood: 20}},
+            {cat: "Structures", name: "Personal Gate", spr: 37, img: 37, off: 4, build: true, door: true, mats: {stone: 10, wood: 20, silver: 1}},
+            {cat: "Structures", name: "Tribe Gate", spr: 38, img: 38, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 1, gold: 5}},
+            {cat: "Structures", name: "Tribe Vault", spr: 39, img: 39, off: 4, build: true, door: true, mats: {stone: 20, wood: 40, silver: 5, gold: 10}},
+            {cat: "Structures", name: "Walled Tree", spr: 43, img: 43, alt: true, height: 3, build: true, mats: {stone: 20, clay: 10, dirt: 10}},
+            {cat: "Structures", name: "Stone Anvil", spr: 61, img: 61, build: true, mats: {stone: 400, silver: 10}},
+            {cat: "Structures", name: "Garbage Bin", spr: 57, img: 57, build: true, mats: {clay: 20, flint: 20}},
+            {cat: "Structures", name: "Bellows", spr: 62, img: 62, build: true, mats: {stone: 250, clay: 150, charcoal: 8, silver: 10}},
+            {cat: "Structures", name: "Bloomery", spr: 63, img: 63, build: true, mats: {wood: 30, silver: 5, hide: 6}},
+            {cat: "Structures", name: "Fire Pit", spr: 77, img: 77, build: true, mats: {stone: 20, wood: 4, flint: 4, charcoal: 4}},
+            {cat: "Structures", name: "Stairs", spr: 8, img: 8, build: true, mats: {stone: 100, clay: 20, gold: 1}},
+            {cat: "Structures", name: "Recall Tile", spr: 24, img: 24, build: true, mats: {escape_lantern: 1, dragon_scale: 1, gold: 10}},
+
+            {cat: "Furniture", name: "Training Dummy", spr: 58, img: 42, height: 2, build: true, mats: {wood: 50, tinder: 20, red_dye: 1}},
+            {cat: "Furniture", name: "Signpost", spr: 59, img: 59, build: true, mats: {wood: 20}},
+            {cat: "Furniture", name: "Bed", spr: 113, img: 81, height: 3, build: true, mats: {wood: 20, feather: 4, wool: 4}},
+            {cat: "Furniture", name: "Wooden Table", spr: 60, img: 60, build: true, mats: {wood: 20}},
+            {cat: "Furniture", name: "Chair", spr: 80, img: 80, build: true, mats: {wood: 10}},
+            {cat: "Furniture", name: "Empty Bookcase", spr: 96, img: 96, build: true, mats: {wood: 200, gold: 5}},
+            {cat: "Furniture", name: "Bookcase", spr: 112, img: 112, build: true, mats: {wood: 200, gold: 5}},
+            {cat: "Furniture", name: "Trading Counter", spr: 41, img: 41, build: true, mats: {wood: 50, silver: 10, gold: 5}},
+            {cat: "Furniture", name: "Golden Candlestick", spr: 78, img: 78, anim: true, off: 4, build: true, mats: {bronze: 20, flint: 5, gold: 5}},
+
+            {cat: "Animals", name: "Cow", spr: 0, img: 0, build: true, animal: true, mats: {}},
+            {cat: "Animals", name: "Chicken", spr: 1, img: 1, build: true, animal: true, mats: {}},
+            {cat: "Animals", name: "Sheep", spr: 2, img: 2, build: true, animal: true, mats: {}},
+            {cat: "Animals", name: "Cat (White)", spr: 3, img: 3, build: true, animal: true, mats: {}},
+
+            {cat: "Miscellaneous Items", name: "Tomato", spr: 82, img: 82, build: true, mats: {}},
+            {cat: "Miscellaneous Items", name: "Fish", spr: 83, img: 83, build: true, mats: {}},
+            {cat: "Miscellaneous Items", name: "Malachite", spr: 98, img: 98, build: true, mats: {}},
+            {cat: "Miscellaneous Items", name: "Cassiterite", spr: 99, img: 99, build: true, mats: {}},
+            {cat: "Miscellaneous Items", name: "Wood", spr: 114, img: 114, build: true, mats: {}},
+            {cat: "Miscellaneous Items", name: "Repair Kit", spr: 115, img: 115, build: true, mats: {}},
+            {cat: "Miscellaneous Items", name: "Chest", spr: 123, img: 123, build: true, mats: {}},
+
+            {cat: "Floors & Roads", name: "Ground", spr: 2, img: 2, mats: {}},
+            {cat: "Floors & Roads", name: "Gravel Road", spr: 3, img: 3, block: true, mats: {stone: 5, clay: 1}},
+            {cat: "Floors & Roads", name: "Stone Road", spr: 4, img: 4, block: true, mats: {stone: 20}},
+            {cat: "Floors & Roads", name: "Clay Floor", spr: 5, img: 5, mats: {clay: 5}},
+            {cat: "Floors & Roads", name: "Wood Floor", spr: 6, img: 6, mats: {wood: 10}},
+            {cat: "Floors & Roads", name: "Stone Floor", spr: 7, img: 7, mats: {stone: 15}},
+            {cat: "Floors & Roads", name: "Deep Water", spr: 21, img: 21, anim: true, block: true, mats: {}},
+            {cat: "Floors & Roads", name: "Shallow Water", spr: 23, img: 23, block: true, mats: {}},
+
+            {cat: "Farming", name: "Spice", spr: 68, img: 68, build: true, mats: {holly_seed: 1}},
+            {cat: "Farming", name: "Dye", spr: 69, img: 69, build: true, mats: {dye_seed: 1}},
+            {cat: "Farming", name: "Salmoberry", spr: 70, img: 70, build: true, mats: {salmoberry_seed: 1}},
+            {cat: "Farming", name: "Holly", spr: 71, img: 71, build: true, mats: {holly_seed: 1}},
+            {cat: "Farming", name: "Carrot", spr: 72, img: 72, build: true, mats: {carrot_seed: 1}},
+            {cat: "Farming", name: "Potato", spr: 73, img: 73, build: true, mats: {potato: 1}},
+            {cat: "Farming", name: "Onion", spr: 74, img: 74, build: true, mats: {onion_seed: 1}},
+            {cat: "Farming", name: "Lettuce", spr: 75, img: 75, build: true, mats: {lettuce_seed: 1}},
+            {cat: "Farming", name: "Tomato", spr: 76, img: 76, build: true, mats: {tomato_seed: 1}},
+
+            {cat: "Flowers", name: "Flower 1", spr: 84, img: 84, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 2", spr: 85, img: 85, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 3", spr: 86, img: 86, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 4", spr: 87, img: 87, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 5", spr: 88, img: 88, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 6", spr: 89, img: 89, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 7", spr: 90, img: 90, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 8", spr: 91, img: 91, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 9", spr: 92, img: 92, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 10", spr: 93, img: 93, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 11", spr: 94, img: 94, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 12", spr: 95, img: 95, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 13", spr: 100, img: 100, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 14", spr: 101, img: 101, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 15", spr: 102, img: 102, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 16", spr: 103, img: 103, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 17", spr: 104, img: 104, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 18", spr: 105, img: 105, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 19", spr: 106, img: 106, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 20", spr: 107, img: 107, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 21", spr: 108, img: 108, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 22", spr: 109, img: 109, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 23", spr: 110, img: 110, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 24", spr: 111, img: 111, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 25", spr: 116, img: 116, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 26", spr: 117, img: 117, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 27", spr: 118, img: 118, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 28", spr: 119, img: 119, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 29", spr: 120, img: 120, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 30", spr: 121, img: 121, build: true, mats: {flower_seed: 1}},
+            {cat: "Flowers", name: "Flower 31", spr: 122, img: 122, build: true, mats: {flower_seed: 1}},
+        ];
+
+        const list = document.getElementById("list");
+        const canvas = document.querySelector("canvas");
+        const gl = canvas.getContext("webgl2");
+        const worker = new Worker("worker.js");
+
+        const state = {x: 0, y: 0, zoom: TILE * 2, quickStart: null, ctrl: false, shift: false, alt: false};
+        const program = gl.createProgram();
+        const build = {};
+        const floor = {};
+
+        function mouse() {
+            const rect = canvas.getBoundingClientRect();
+            return [
+                Math.round((state.mx - rect.left - canvas.width / 2) / state.zoom - state.x),
+                Math.round((state.my - canvas.height / 2) / state.zoom - state.y)
+            ];
+        }
+
+        function add(x, y) {
+            return x + " " + y;
+        }
+
+        function fillLine(startX, startY, endX, endY) {
+            const cells = [];
+            const dx = Math.sign(endX - startX);
+            const dy = Math.sign(endY - startY);
+            const steps = Math.max(Math.abs(endX - startX), Math.abs(endY - startY));
+
+            for (let i = 0; i <= steps; i++) {
+                const x = startX + dx * i;
+                const y = startY + dy * i;
+                cells.push({x, y});
             }
+            return cells;
+        }
 
-            function add(x, y) {
-                return x + " " + y
-            }
+        function fillRectangle(startX, startY, endX, endY) {
+            const cells = [];
+            const minX = Math.min(startX, endX);
+            const maxX = Math.max(startX, endX);
+            const minY = Math.min(startY, endY);
+            const maxY = Math.max(startY, endY);
 
-            function fillLine(startX, startY, endX, endY) {
-                const cells = []
-                const dx = Math.sign(endX - startX)
-                const dy = Math.sign(endY - startY)
-                const steps = Math.max(Math.abs(endX - startX), Math.abs(endY - startY))
-
-                for (let i = 0; i <= steps; i++) {
-                    const x = startX + dx * i
-                    const y = startY + dy * i
-                    cells.push({x, y})
+            for (let x = minX; x <= maxX; x++) {
+                for (let y = minY; y <= maxY; y++) {
+                    cells.push({x, y});
                 }
-                return cells
             }
+            return cells;
+        }
 
-            function fillRectangle(startX, startY, endX, endY) {
-                const cells = []
-                const minX = Math.min(startX, endX)
-                const maxX = Math.max(startX, endX)
-                const minY = Math.min(startY, endY)
-                const maxY = Math.max(startY, endY)
-
-                for (let x = minX; x <= maxX; x++) {
-                    for (let y = minY; y <= maxY; y++) {
-                        cells.push({x, y})
-                    }
-                }
-                return cells
-            }
-
-            function placeMultiple(cells, item) {
-                if (!state.select) return
-
-                cells.forEach(({x, y}) => {
-                    const i = add(x, y)
+        function placeMultiple(cells, item, isErase = false) {
+            cells.forEach(({x, y}) => {
+                const i = add(x, y);
+                if (isErase) {
+                    delete build[i];
+                    delete floor[i];
+                } else if (state.select) {
                     if (item.build) {
-                        if (floor[i] && floor[i].block)
-                            delete floor[i]
-                        build[i] = item
+                        if (floor[i] && floor[i].block) delete floor[i];
+                        build[i] = item;
                     } else {
-                        if (build[i] && item.block)
-                            delete build[i]
-                        floor[i] = item
+                        if (build[i] && item.block) delete build[i];
+                        floor[i] = item;
                     }
-                })
-
-                worker.postMessage({floor, build})
-                updateSize()
-            }
-
-            function place() {
-                if (state.select) {
-                    const [mx, my] = mouse()
-                    const i = add(mx, my)
-
-                    if (state.mouse == 3)
-                        build[i] ? delete build[i] : delete floor[i]
-                    else {
-                        if (state.select.build) {
-                            if (floor[i] && floor[i].block)
-                                delete floor[i]
-                            build[i] = state.select
-                        }
-                        else {
-                            if (build[i] && state.select.block)
-                                delete build[i]
-                            floor[i] = state.select
-                        }
-                    }
-
-                    worker.postMessage({floor, build})
-                    updateSize()
                 }
+            });
 
-                return state.select
+            worker.postMessage({floor, build});
+            updateSize();
+        }
+
+        function place(isQuick = false) {
+            if (!state.select) return false;
+
+            const [mx, my] = mouse();
+            const i = add(mx, my);
+
+            if (state.ctrl == 3 || state.rightClick) {
+                delete build[i];
+                delete floor[i];
+            } else if (!isQuick) {
+                if (state.select.build) {
+                    if (floor[i] && floor[i].block) delete floor[i];
+                    build[i] = state.select;
+                } else {
+                    if (build[i] && state.select.block) delete build[i];
+                    floor[i] = state.select;
+                }
             }
+
+            if (!isQuick) {
+                worker.postMessage({floor, build});
+                updateSize();
+            }
+            return true;
+        }
+
+        function updateSize() {
+            const walls = Object.entries(build).filter(([, v]) => v.wall);
+            if (walls.length === 0) {
+                document.getElementById("size-val").textContent = "—";
+                return;
+            }
+            const xs = walls.map(([k]) => +k.split(" ")[0]);
+            const ys = walls.map(([k]) => +k.split(" ")[1]);
+            const w = Math.max(...xs) - Math.min(...xs) + 1;
+            const h = Math.max(...ys) - Math.min(...ys) + 1;
+            document.getElementById("size-val").textContent = `${w} × ${h}`;
+        }
+
+        function toggleExportPopup(e) {
+            const popup = document.getElementById("export-popup");
+            const rect = e.target.getBoundingClientRect();
+            popup.style.left = rect.left + "px";
+            popup.style.top = (rect.bottom + 5) + "px";
+            popup.classList.toggle("active");
+        }
+
+        function exportProject(type) {
+            document.getElementById("export-popup").classList.remove("active");
+
+            if (type === "jpg-full" || type === "jpg-image") {
+                exportAsImage(type === "jpg-full");
+            } else if (type === "txt") {
+                exportAsText();
+            }
+        }
+
+        function exportAsImage(withLegend) {
+            const walls = Object.entries(build).filter(([, v]) => v.wall);
+            let minX = 0, maxX = 0, minY = 0, maxY = 0;
+            
+            if (walls.length > 0) {
+                const xs = walls.map(([k]) => +k.split(" ")[0]);
+                const ys = walls.map(([k]) => +k.split(" ")[1]);
+                minX = Math.min(...xs) - 1;
+                maxX = Math.max(...xs) + 1;
+                minY = Math.min(...ys) - 1;
+                maxY = Math.max(...ys) + 1;
+            }
+
+            const baseW = (maxX - minX) * 16;
+            const baseH = (maxY - minY) * 16;
+            const legendH = withLegend ? 200 : 0;
+
+            const offCanvas = document.createElement("canvas");
+            const offCtx = offCanvas.getContext("2d");
+
+            if (withLegend) {
+                offCanvas.width = 1080;
+                offCanvas.height = Math.max(baseH + 250, 1080);
+            } else {
+                offCanvas.width = baseW;
+                offCanvas.height = baseH;
+            }
+
+            offCtx.fillStyle = "#1a1a1a";
+            offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+
+            // Draw base
+            offCtx.fillStyle = "#242424";
+            if (withLegend) {
+                offCtx.fillRect(0, 0, offCanvas.width, baseH);
+            }
+
+            // Draw grid and tiles
+            offCtx.strokeStyle = "rgba(100, 100, 100, 0.2)";
+            offCtx.lineWidth = 0.5;
+
+            for (let x = minX; x <= maxX; x++) {
+                for (let y = minY; y <= maxY; y++) {
+                    const px = (x - minX) * 16;
+                    const py = (y - minY) * 16;
+
+                    offCtx.strokeRect(px, py, 16, 16);
+
+                    const tile = floor[add(x, y)];
+                    if (tile) {
+                        offCtx.fillStyle = "#333";
+                        offCtx.fillRect(px, py, 16, 16);
+                    }
+
+                    const wall = build[add(x, y)];
+                    if (wall) {
+                        offCtx.fillStyle = "#555";
+                        offCtx.fillRect(px, py, 14, 14);
+                        offCtx.fillStyle = "#fff";
+                        offCtx.font = "8px monospace";
+                        offCtx.fillText(wall.name[0], px + 5, py + 10);
+                    }
+                }
+            }
+
+            // Draw legend
+            if (withLegend) {
+                offCtx.fillStyle = "#1e1e1e";
+                offCtx.fillRect(0, baseH, offCanvas.width, legendH);
+
+                offCtx.fillStyle = "#fff";
+                offCtx.font = "bold 20px monospace";
+                offCtx.fillText(document.getElementById("baseName").value || "Unnamed Base", 20, baseH + 35);
+
+                const sizeText = document.getElementById("size-val").textContent;
+                const now = new Date().toLocaleDateString();
+                offCtx.fillStyle = "#aaa";
+                offCtx.font = "12px monospace";
+                offCtx.fillText(`${sizeText} · ${now}`, 20, baseH + 60);
+
+                offCtx.strokeStyle = "#555";
+                offCtx.lineWidth = 1;
+                offCtx.strokeRect(20, baseH + 75, offCanvas.width - 40, 35);
+                offCtx.fillStyle = "#888";
+                offCtx.font = "10px monospace";
+                offCtx.fillText("Coded by GreyHope / Updated by Darot", 30, baseH + 95);
+                offCtx.fillText("Materials calculator for Mystera Legacy", 30, baseH + 108);
+
+                const mats = document.getElementById("mats").textContent;
+                const matLines = mats.split("\n").filter(l => l.trim());
+                offCtx.fillStyle = "#ccc";
+                offCtx.font = "10px monospace";
+
+                let xCol = 20;
+                let yOffset = baseH + 130;
+                let colCount = 0;
+
+                matLines.forEach((line, i) => {
+                    if (colCount >= 10) {
+                        xCol += 350;
+                        colCount = 0;
+                        yOffset = baseH + 130;
+                    }
+                    offCtx.fillText(line, xCol, yOffset);
+                    yOffset += 14;
+                    colCount++;
+                });
+            }
+
+            const link = document.createElement("a");
+            link.href = offCanvas.toDataURL("image/jpeg", 0.9);
+            link.download = (document.getElementById("baseName").value || "base_design") + ".jpg";
+            link.click();
+        }
+
+        function exportAsText() {
+            const sizeText = document.getElementById("size-val").textContent;
+            const now = new Date().toLocaleDateString();
+            const mats = document.getElementById("mats").textContent;
+
+            const text = `═══════════════════════════════════════════
+${document.getElementById("baseName").value || "Unnamed Base"}
+═══════════════════════════════════════════
+
+Base Size: ${sizeText}
+Data: ${now}
+
+───────────────────────────────────────────
+This is a materials calculator for Mystera Legacy
+Coded by GreyHope / Updated by Darot
+───────────────────────────────────────────
+
+MATERIAIS NECESSÁRIOS:
+
+${mats}
+
+═══════════════════════════════════════════`;
+
+            const blob = new Blob([text], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = (document.getElementById("baseName").value || "materials") + ".txt";
+            link.click();
+        }
+
+        function start() {
+            const update = () => {
+                const width = state.zoom / canvas.width * 2;
+                const height = state.zoom / canvas.height * -2;
+                gl.uniform4f(gl.getUniformLocation(program, "state"), state.x, state.y, width, height);
+            };
+
+            const vertex = gl.createShader(gl.VERTEX_SHADER);
+            const fragment = gl.createShader(gl.FRAGMENT_SHADER);
+
+            const vs = `#version 300 es
+            uniform vec4 state;
+            uniform vec2 pos;
+            uniform vec4 img;
+            out vec4 image;
+            out vec2 coord;
+            void main() {
+                vec2 points[] = vec2[](vec2(-.5, .5), vec2(.5, .5), vec2(-.5, .5 - img.z), vec2(.5, .5 - img.z));
+                vec2 coords[] = vec2[](vec2(0, 1), vec2(1, 1), vec2(0, 1. - img.z), vec2(1, 1. - img.z));
+                gl_Position = vec4((points[gl_VertexID] + pos + state.xy) * state.zw, 0, 1);
+                coord = coords[gl_VertexID] * 16.;
+                image = vec4(vec3(img.xy, 1. - img.z) * 16., img.a);
+            }`;
+
+            const fs = `#version 300 es
+            precision highp float;
+            uniform sampler2D sampler;
+            in vec2 coord;
+            in vec4 image;
+            out vec4 color;
+            void main() {
+                vec2 pos = vec2(max(min(coord.x, 15.), 0.), max(min(coord.y, 15.), image.z));
+                vec2 size = vec2(textureSize(sampler, 0));
+                vec4 shade = texture(sampler, (image.xy + pos) / size);
+                color = vec4(shade.rgb, shade.a * image.w);
+            }`;
+
+            gl.shaderSource(vertex, vs);
+            gl.shaderSource(fragment, fs);
+            gl.compileShader(vertex);
+            gl.compileShader(fragment);
+
+            gl.attachShader(program, vertex);
+            gl.attachShader(program, fragment);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            gl.deleteShader(vertex);
+            gl.deleteShader(fragment);
+
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+            const texture = gl.createTexture();
+            const tiles = new Image();
 
             function render() {
-                const loc = e => [e % TILE, Math.floor(e / TILE)]
+                const loc = e => [e % TILE, Math.floor(e / TILE)];
 
-                const width = Math.floor(canvas.width / state.zoom / 2) + 1
-                const height = Math.floor(canvas.height / state.zoom / 2) + 1
-                const index = width * 2 + 1
+                const width = Math.floor(canvas.width / state.zoom / 2) + 1;
+                const height = Math.floor(canvas.height / state.zoom / 2) + 1;
+                const index = width * 2 + 1;
 
-                const pos = gl.getUniformLocation(program, "pos")
-                const img = gl.getUniformLocation(program, "img")
-                const alt = Math.floor(Date.now() / 1e3) % 2
+                const pos = gl.getUniformLocation(program, "pos");
+                const img = gl.getUniformLocation(program, "img");
+                const alt = Math.floor(Date.now() / 500) % 2;
 
-                gl.clear(gl.COLOR_BUFFER_BIT)
+                gl.clear(gl.COLOR_BUFFER_BIT);
 
-                for (let i = 0; i < index * (height * 2 + 1); i ++) {
-                    const coord = e => [e % TILE, Math.floor(e / TILE)]
-                    const image = e => e.anim && state.alt || e.alt && alt ? e.spr + 1 : e.spr
+                for (let i = 0; i < index * (height * 2 + 1); i++) {
+                    const image = e => e.anim && alt || e.alt && alt ? e.spr + 1 : e.spr;
 
-                    const x = i % index - width - Math.round(state.x)
-                    const y = Math.floor(i / index) - height - Math.round(state.y)
-                    const alt = ~~(Math.sin(x) * 1e3 + Math.cos(y)) & 1
+                    const x = i % index - width - Math.round(state.x);
+                    const y = Math.floor(i / index) - height - Math.round(state.y);
+                    const altVal = ~~(Math.sin(x) * 1e3 + Math.cos(y)) & 1;
 
-                    const wall = build[add(x, y)]
-                    const tile = floor[add(x, y)]
-                    const [px, py] = loc(tile ? image(tile) : alt)
+                    const wall = build[add(x, y)];
+                    const tile = floor[add(x, y)];
+                    const [px, py] = loc(tile ? image(tile) : altVal);
 
-                    gl.uniform2f(pos, x, y)
-                    gl.uniform4f(img, px, py, 1, 1)
-                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+                    gl.uniform2f(pos, x, y);
+                    gl.uniform4f(img, px, py, 1, 1);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
                     if (tile) {
-                        const t = !floor[add(x, y - 1)]
-                        const b = !floor[add(x, y + 1)]
-                        const l = !floor[add(x - 1, y)]
-                        const r = !floor[add(x + 1, y)]
+                        const t = !floor[add(x, y - 1)];
+                        const b = !floor[add(x, y + 1)];
+                        const l = !floor[add(x - 1, y)];
+                        const r = !floor[add(x + 1, y)];
 
-                        const index = t && b && l && r ? 16 : t && b && r ? 17 : t && b && l ? 18 :
+                        const idx = t && b && l && r ? 16 : t && b && r ? 17 : t && b && l ? 18 :
                             b && l && r ? 19 : t && l && r ? 20 : t && l ? 32 : t && r ? 33 : l && b ? 34 :
-                            r && b ? 35 : l && r ? 36 : t && b ? 48 : l ? 49 : t ? 50 : b ? 51 : r ? 52 : 0
+                            r && b ? 35 : l && r ? 36 : t && b ? 48 : l ? 49 : t ? 50 : b ? 51 : r ? 52 : 0;
 
-                        if (index) {
-                            const [px, py] = loc(index)
-                            gl.uniform4f(img, px, py, 1, 1)
-                            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+                        if (idx) {
+                            const [px, py] = loc(idx);
+                            gl.uniform4f(img, px, py, 1, 1);
+                            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
                         }
                     }
 
                     if (wall) {
-                        const [px, py] = loc(wall.door && (!build[add(x - 1, y)] || !build[add(x + 1, y)]) ? wall.spr + TILE : image(wall))
-                        gl.uniform2f(pos, x, wall.off ? y - wall.off / TILE : y)
-                        gl.uniform4f(img, px, py, wall.height || 1, 1)
-                        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+                        const [px, py] = loc(wall.door && (!build[add(x - 1, y)] || !build[add(x + 1, y)]) ? wall.spr + TILE : image(wall));
+                        gl.uniform2f(pos, x, wall.off ? y - wall.off / TILE : y);
+                        gl.uniform4f(img, px, py, wall.height || 1, 1);
+                        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
                     }
                 }
 
-                if (state.select && state.mouse != 3) {
-                    const [mx, my] = mouse()
-                    const [x, y] = loc(state.select.spr)
+                if (state.select && state.ctrl != 3) {
+                    const [mx, my] = mouse();
+                    const [x, y] = loc(state.select.spr);
 
-                    gl.uniform2f(pos, mx, state.select.off ? my - state.select.off / TILE : my)
-                    gl.uniform4f(img, x, y, state.select.height || 1, .7)
-                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+                    gl.uniform2f(pos, mx, state.select.off ? my - state.select.off / TILE : my);
+                    gl.uniform4f(img, x, y, state.select.height || 1, .7);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
                 }
             }
 
-            function start() {
-                const update = () => {
-                    const width = state.zoom / canvas.width * 2.
-                    const height = state.zoom / canvas.height * -2.
+            canvas.onwheel = e => {
+                const amount = e.deltaY / -5e2;
+                const rect = canvas.getBoundingClientRect();
 
-                    gl.uniform4f(gl.getUniformLocation(program, "state"), state.x, state.y, width, height)
+                const x = state.mx - rect.left - canvas.width / 2;
+                const y = state.my - canvas.height / 2;
+
+                state.zoom = Math.max(state.zoom * (1 + amount), 4);
+                state.x -= x / state.zoom * amount;
+                state.y -= y / state.zoom * amount;
+
+                update();
+                render();
+            };
+
+            canvas.onmousedown = e => {
+                state.ctrl = e.which;
+                e.preventDefault();
+
+                const [mx, my] = mouse();
+
+                if (state.shift) {
+                    state.quickStart = {x: mx, y: my, alt: state.alt};
+                } else if (!state.shift) {
+                    place();
                 }
 
-                const vertex = gl.createShader(gl.VERTEX_SHADER)
-                const fragment = gl.createShader(gl.FRAGMENT_SHADER)
+                render();
+            };
 
-                const vs =
-                    "#version 300 es\n" +
-                    "uniform vec4 state;" +
-                    "uniform vec2 pos;" +
-                    "uniform vec4 img;" +
-                    "out vec4 image;" +
-                    "out vec2 coord;" +
-                    "void main() {" +
-                        "vec2 points[] = vec2[](vec2(-.5, .5), vec2(.5, .5), vec2(-.5, .5 - img.z), vec2(.5, .5 - img.z));" +
-                        "vec2 coords[] = vec2[](vec2(0, 1), vec2(1, 1), vec2(0, 1. - img.z), vec2(1, 1. - img.z));" +
-                        "gl_Position = vec4((points[gl_VertexID] + pos + state.xy) * state.zw, 0, 1);" +
-                        "coord = coords[gl_VertexID] * 16.;" +
-                        "image = vec4(vec3(img.xy, 1. - img.z) * 16., img.a);" +
-                    "}"
+            canvas.onmousemove = e => {
+                state.mx = e.clientX;
+                state.my = e.clientY;
 
-                const fs =
-                    "#version 300 es\n" +
-                    "precision highp float;" +
-                    "uniform sampler2D sampler;" +
-                    "in vec2 coord;" +
-                    "in vec4 image;" +
-                    "out vec4 color;" +
-                    "void main() {" +
-                        "vec2 pos = vec2(max(min(coord.x, 15.), 0.), max(min(coord.y, 15.), image.z));" +
-                        "vec2 size = vec2(textureSize(sampler, 0));" +
-                        "vec4 shade = texture(sampler, (image.xy + pos) / size);" +
-                        "color = vec4(shade.rgb, shade.a * image.w);" +
-                    "}"
-
-                gl.shaderSource(vertex, vs); 
-                gl.shaderSource(fragment, fs);
-                gl.compileShader(vertex)
-                gl.compileShader(fragment)
-
-                gl.attachShader(program, vertex)
-                gl.attachShader(program, fragment)
-                gl.linkProgram(program)
-                gl.useProgram(program)
-
-                gl.deleteShader(vertex)
-                gl.deleteShader(fragment)
-
-                gl.enable(gl.BLEND)
-                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
-                const texture = gl.createTexture()
-                const tiles = new Image()
-
-                canvas.onwheel = event => {
-                    const amount = event.deltaY / -5e2
-                    const rect = canvas.getBoundingClientRect()
-
-                    const x = state.mx - rect.left - canvas.width / 2
-                    const y = state.my - canvas.height / 2
-
-                    state.zoom = Math.max(state.zoom * (1 + amount), 4)
-                    state.x -= x / state.zoom * amount
-                    state.y -= y / state.zoom * amount
-
-                    update()
-                    render()
+                if (state.ctrl && !state.shift && !place()) {
+                    state.x += e.movementX / state.zoom;
+                    state.y += e.movementY / state.zoom;
+                    update();
                 }
 
-                document.addEventListener("keydown", e => {
-                    if (e.shiftKey) hint.classList.add("active")
-                })
+                render();
+            };
 
-                document.addEventListener("keyup", e => {
-                    if (!e.shiftKey) hint.classList.remove("active")
-                })
+            canvas.onmouseup = e => {
+                if (state.quickStart && state.select) {
+                    const [mx, my] = mouse();
+                    const cells = fillRectangle(state.quickStart.x, state.quickStart.y, mx, my);
 
-                canvas.onmousedown = event => {
-                    state.mouse = event.which
-                    event.preventDefault()
-
-                    const [mx, my] = mouse()
-                    state.lastClickX = mx
-                    state.lastClickY = my
-
-                    if (!event.shiftKey) {
-                        place()
+                    if (state.alt) {
+                        placeMultiple(cells, null, true);
+                    } else {
+                        placeMultiple(cells, state.select, false);
                     }
-                    render()
                 }
 
-                canvas.onmousemove = event => {
-                    state.mx = event.clientX
-                    state.my = event.clientY
+                state.ctrl = false;
+                state.quickStart = null;
+                render();
+            };
 
-                    if (state.mouse && !event.shiftKey && !place()) {
-                        state.x += event.movementX / state.zoom
-                        state.y += event.movementY / state.zoom
-                        update()
-                    }
+            document.addEventListener("keydown", e => {
+                if (e.key === "Shift") state.shift = true;
+                if (e.key === "Alt") state.alt = true;
+            });
 
-                    render()
-                }
+            document.addEventListener("keyup", e => {
+                if (e.key === "Shift") state.shift = false;
+                if (e.key === "Alt") state.alt = false;
+            });
 
-                canvas.onmouseup = event => {
-                    if (event.shiftKey && state.mouse && state.select) {
-                        const [mx, my] = mouse()
-                        const dx = Math.abs(mx - state.lastClickX)
-                        const dy = Math.abs(my - state.lastClickY)
+            new ResizeObserver(() => {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
 
-                        let cells = []
+                gl.viewport(0, 0, canvas.width, canvas.height);
 
-                        if (dx > 0 && dy === 0) {
-                            cells = fillLine(state.lastClickX, state.lastClickY, mx, my)
-                        } else if (dx === 0 && dy > 0) {
-                            cells = fillLine(state.lastClickX, state.lastClickY, mx, my)
-                        } else if (dx > 0 && dy > 0) {
-                            cells = fillRectangle(state.lastClickX, state.lastClickY, mx, my)
-                        }
+                update();
+                render();
+            }).observe(canvas);
 
-                        if (cells.length > 0) {
-                            placeMultiple(cells, state.select)
-                        }
-                    }
+            tiles.onload = () => {
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tiles);
 
-                    state.mouse = false
-                    state.lastClickX = null
-                    state.lastClickY = null
-                    render()
-                }
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-                new ResizeObserver(() => {
-                    canvas.width = canvas.clientWidth
-                    canvas.height = canvas.clientHeight
+                render();
+            };
 
-                    gl.viewport(0, 0, canvas.width, canvas.height)
+            let currentCat = "";
+            const tooltip = document.getElementById("tooltip");
+            const catStates = {};
 
-                    update()
-                    render()
-                }).observe(canvas)
+            list.append(...BUILD.flatMap(item => {
+                const els = [];
 
-                tiles.onload = () => {
-                    gl.bindTexture(gl.TEXTURE_2D, texture)
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tiles)
+                if (item.cat && item.cat !== currentCat) {
+                    currentCat = item.cat;
+                    if (!catStates[currentCat]) catStates[currentCat] = true;
 
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-
-                    render()
-                }
-
-                let cat = "";
-                const tooltip = document.getElementById("tooltip");
-
-                list.append(...BUILD.flatMap(item => {
-                    const els = [];
-
-                    if (item.cat && item.cat !== cat) {
-                        cat = item.cat;
-                        const label = document.createElement("div");
-                        label.className = "cat-label";
-                        label.innerHTML = `${cat}<span class="toggle">−</span>`;
-                        label.addEventListener("click", () => {
-                            label.classList.toggle("collapsed");
-                            const toggle = label.querySelector(".toggle");
-                            toggle.textContent = label.classList.contains("collapsed") ? "+" : "−";
-                        });
-                        els.push(label);
-                    }
-
-                    const group = document.createElement("div");
-                    group.className = "cat-group";
-
-                    const div = document.createElement("div");
-                    div.className = "item-btn";
-                    const scale = 1.75;
-                    const sx = item.img % TILE * TILE * -scale;
-                    const sy = Math.floor(item.img / TILE) * TILE * -scale;
-                    div.style.backgroundPosition = `${sx}px ${sy}px`;
-                    div.tabIndex = 1;
-                    div.title = item.name || "";
-
-                    div.addEventListener("mouseenter", e => {
-                        tooltip.textContent = item.name || "";
-                        tooltip.style.display = "block";
+                    const label = document.createElement("div");
+                    label.className = "cat-label" + (catStates[currentCat] ? " collapsed" : "");
+                    label.innerHTML = `${currentCat}<span class="toggle">${catStates[currentCat] ? "+" : "−"}</span>`;
+                    label.addEventListener("click", () => {
+                        catStates[currentCat] = !catStates[currentCat];
+                        label.classList.toggle("collapsed");
+                        label.querySelector(".toggle").textContent = catStates[currentCat] ? "+" : "−";
                     });
-                    div.addEventListener("mousemove", e => {
-                        tooltip.style.left = (e.clientX + 12) + "px";
-                        tooltip.style.top  = (e.clientY - 28) + "px";
-                    });
-                    div.addEventListener("mouseleave", () => {
-                        tooltip.style.display = "none";
-                    });
-
-                    div.onfocus = () => state.select = item;
-                    div.onblur  = () => delete state.select;
-
-                    group.appendChild(div);
-                    els.push(group);
-                    return els;
-                }));
-
-                worker.onmessage = e => document.getElementById("mats").textContent = e.data
-
-                function updateSize() {
-                    const walls = Object.entries(build).filter(([, v]) => v.wall);
-                    if (walls.length === 0) { 
-                        document.getElementById("size-val").textContent = "—"; 
-                        return; 
-                    }
-                    const xs = walls.map(([k]) => +k.split(" ")[0]);
-                    const ys = walls.map(([k]) => +k.split(" ")[1]);
-                    const w = Math.max(...xs) - Math.min(...xs) + 1;
-                    const h = Math.max(...ys) - Math.min(...ys) + 1;
-                    document.getElementById("size-val").textContent = `${w} × ${h}`;
+                    els.push(label);
                 }
 
-                const baseName = document.getElementById("baseName");
-                const btnExport = document.getElementById("btnExport");
-                const btnSave = document.getElementById("btnSave");
-                const btnLoad = document.getElementById("btnLoad");
-                const fileInput = document.getElementById("fileInput");
-                const exportBtns = document.querySelectorAll(".export-btn");
+                const group = document.createElement("div");
+                group.className = "cat-group";
 
-                exportBtns.forEach(btn => {
-                    btn.addEventListener("click", () => {
-                        exportBtns.forEach(b => b.classList.remove("active"));
-                        btn.classList.add("active");
-                        exportFormat = btn.dataset.format;
-                    });
+                const div = document.createElement("div");
+                div.className = "item-btn";
+                const scale = 1.75;
+                const sx = item.img % TILE * TILE * -scale;
+                const sy = Math.floor(item.img / TILE) * TILE * -scale;
+                div.style.backgroundPosition = `${sx}px ${sy}px`;
+                div.tabIndex = 1;
+                div.title = item.name;
+
+                div.addEventListener("mouseenter", () => {
+                    tooltip.textContent = item.name;
+                    tooltip.style.display = "block";
+                });
+                div.addEventListener("mousemove", e => {
+                    tooltip.style.left = (e.clientX + 12) + "px";
+                    tooltip.style.top = (e.clientY - 28) + "px";
+                });
+                div.addEventListener("mouseleave", () => {
+                    tooltip.style.display = "none";
                 });
 
-                btnExport.onclick = () => {
-                    if (exportFormat === "jpg") {
-                        exportAsImage();
-                    } else {
-                        exportAsText();
+                div.onfocus = () => state.select = item;
+                div.onblur = () => delete state.select;
+
+                group.appendChild(div);
+                els.push(group);
+                return els;
+            }));
+
+            worker.onmessage = e => document.getElementById("mats").textContent = e.data;
+
+            document.getElementById("btnSave").onclick = () => {
+                const data = JSON.stringify({name: document.getElementById("baseName").value, build, floor});
+                const blob = new Blob([data], {type: "application/json"});
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = (document.getElementById("baseName").value || "base_project") + ".json";
+                link.click();
+            };
+
+            document.getElementById("btnLoad").onclick = () => document.getElementById("fileInput").click();
+
+            document.getElementById("fileInput").onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        document.getElementById("baseName").value = data.name || "";
+                        Object.keys(build).forEach(k => delete build[k]);
+                        Object.keys(floor).forEach(k => delete floor[k]);
+                        Object.assign(build, data.build || {});
+                        Object.assign(floor, data.floor || {});
+                        worker.postMessage({floor, build});
+                        updateSize();
+                        render();
+                    } catch (err) {
+                        alert("Falha ao carregar projeto.");
                     }
                 };
+                reader.readAsText(file);
+                document.getElementById("fileInput").value = "";
+            };
 
-                function exportAsImage() {
-                    const offCanvas = document.createElement("canvas");
-                    const offCtx = offCanvas.getContext("2d");
-                    
-                    const baseW = 400;
-                    const baseH = 300;
-                    const infoH = 180;
-                    
-                    offCanvas.width = baseW + 40;
-                    offCanvas.height = baseH + infoH + 40;
+            canvas.oncontextmenu = e => e.preventDefault();
+            tiles.src = "map.png";
 
-                    offCtx.fillStyle = "#1a1a1a";
-                    offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+            setInterval(render, 500);
+        }
 
-                    offCtx.fillStyle = "#242424";
-                    offCtx.fillRect(20, 20, baseW, baseH);
-
-                    const gridSize = 16;
-                    offCtx.strokeStyle = "rgba(100, 100, 100, 0.2)";
-                    offCtx.lineWidth = 0.5;
-                    for (let i = 0; i <= baseW; i += gridSize) {
-                        offCtx.beginPath();
-                        offCtx.moveTo(20 + i, 20);
-                        offCtx.lineTo(20 + i, 20 + baseH);
-                        offCtx.stroke();
-                    }
-                    for (let i = 0; i <= baseH; i += gridSize) {
-                        offCtx.beginPath();
-                        offCtx.moveTo(20, 20 + i);
-                        offCtx.lineTo(20 + baseW, 20 + i);
-                        offCtx.stroke();
-                    }
-
-                    offCtx.fillStyle = "#444";
-                    offCtx.font = "9px monospace";
-                    for (let i = 0; i <= baseW; i += gridSize * 4) {
-                        offCtx.fillText(i / gridSize, 20 + i - 3, 15);
-                    }
-                    for (let i = 0; i <= baseH; i += gridSize * 4) {
-                        offCtx.fillText(i / gridSize, 8, 20 + i + 3);
-                    }
-
-                    offCtx.fillStyle = "#1e1e1e";
-                    offCtx.fillRect(20, 20 + baseH + 10, offCanvas.width - 40, infoH);
-
-                    offCtx.fillStyle = "#fff";
-                    offCtx.font = "bold 18px monospace";
-                    offCtx.fillText(baseName.value || "Unnamed Base", 30, 20 + baseH + 35);
-
-                    const walls = Object.entries(build).filter(([, v]) => v.wall);
-                    let sizeText = "—";
-                    if (walls.length > 0) {
-                        const xs = walls.map(([k]) => +k.split(" ")[0]);
-                        const ys = walls.map(([k]) => +k.split(" ")[1]);
-                        const w = Math.max(...xs) - Math.min(...xs) + 1;
-                        const h = Math.max(...ys) - Math.min(...ys) + 1;
-                        sizeText = `${w} × ${h}`;
-                    }
-
-                    const now = new Date().toLocaleDateString();
-                    offCtx.fillStyle = "#aaa";
-                    offCtx.font = "10px monospace";
-                    offCtx.fillText(`${sizeText} · ${now}`, 30, 20 + baseH + 55);
-
-                    offCtx.strokeStyle = "#555";
-                    offCtx.lineWidth = 1;
-                    offCtx.strokeRect(30, 20 + baseH + 65, offCanvas.width - 60, 30);
-
-                    offCtx.fillStyle = "#aaa";
-                    offCtx.font = "8px monospace";
-                    offCtx.fillText("This is a materials calculator for Mystera Legacy", 35, 20 + baseH + 80);
-                    offCtx.fillText("Coded by GreyHope / Updated by Darot", 35, 20 + baseH + 92);
-
-                    const mats = document.getElementById("mats").textContent;
-                    const matLines = mats.split("\n").slice(0, 12);
-                    offCtx.fillStyle = "#ccc";
-                    offCtx.font = "9px monospace";
-                    let yPos = 20 + baseH + 35;
-                    matLines.forEach((line, i) => {
-                        if (i < 6) {
-                            offCtx.fillText(line, 240, yPos + (i * 12));
-                        } else {
-                            offCtx.fillText(line, 320, yPos + ((i - 6) * 12));
-                        }
-                    });
-
-                    const link = document.createElement("a");
-                    link.href = offCanvas.toDataURL("image/jpeg", 0.9);
-                    link.download = (baseName.value || "base_design") + ".jpg";
-                    link.click();
-                }
-
-                function exportAsText() {
-                    const walls = Object.entries(build).filter(([, v]) => v.wall);
-                    let sizeText = "—";
-                    if (walls.length > 0) {
-                        const xs = walls.map(([k]) => +k.split(" ")[0]);
-                        const ys = walls.map(([k]) => +k.split(" ")[1]);
-                        const w = Math.max(...xs) - Math.min(...xs) + 1;
-                        const h = Math.max(...ys) - Math.min(...ys) + 1;
-                        sizeText = `${w} × ${h}`;
-                    }
-
-                    const now = new Date().toLocaleDateString();
-                    const mats = document.getElementById("mats").textContent;
-                    
-                    const text = `═════════════════════════════════════
-${baseName.value || "Unnamed Base"}
-═════════════════════════════════════
-
-Base Size: ${sizeText}
-Date: ${now}
-
-─────────────────────────────────────
-This is a materials calculator for Mystera Legacy
-Coded by GreyHope / Updated by Darot
-─────────────────────────────────────
-
-REQUIRED MATERIALS:
-
-${mats}
-
-═════════════════════════════════════`;
-
-                    const blob = new Blob([text], { type: "text/plain" });
-                    const link = document.createElement("a");
-                    link.href = URL.createObjectURL(blob);
-                    link.download = (baseName.value || "materials") + ".txt";
-                    link.click();
-                }
-
-                btnSave.onclick = () => {
-                    const data = JSON.stringify({ name: baseName.value, build, floor });
-                    const blob = new Blob([data], { type: "application/json" });
-                    const link = document.createElement("a");
-                    link.href = URL.createObjectURL(blob);
-                    link.download = (baseName.value || "base_project") + ".json";
-                    link.click();
-                };
-
-                btnLoad.onclick = () => fileInput.click();
-
-                fileInput.onchange = (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        try {
-                            const data = JSON.parse(event.target.result);
-                            baseName.value = data.name || "";
-                            Object.keys(build).forEach(k => delete build[k]);
-                            Object.keys(floor).forEach(k => delete floor[k]);
-                            Object.assign(build, data.build || {});
-                            Object.assign(floor, data.floor || {});
-                            worker.postMessage({floor, build});
-                            updateSize();
-                            render();
-                        } catch (err) {
-                            alert("Failed to load project file.");
-                        }
-                    };
-                    reader.readAsText(file);
-                    fileInput.value = "";
-                };
-
-                canvas.oncontextmenu = e => e.preventDefault()
-                tiles.src = "map.png"
-
-                setInterval(() => {
-                    state.alt = !state.alt
-                    render()
-                }, 500)
-            }
-
-            start()
-        </script>
-    </body>
+        start();
+    </script>
+</body>
 </html>
