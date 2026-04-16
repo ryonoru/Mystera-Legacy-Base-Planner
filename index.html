@@ -1172,26 +1172,6 @@ ${mats}
                 render();
             };
 
-            canvas.onmousedown = e => {
-                e.preventDefault();
-                const [mx, my] = mouse();
-
-                if (state.shift) {
-                    state.quickStart = {x: mx, y: my};
-                } else if (e.which === 1) {
-                    place();
-                } else if (e.which === 3) {
-                    const key = add(mx, my);
-                    delete build[key];
-                    delete floor[key];
-                    delete heightMap[key];
-                    worker.postMessage({floor, build});
-                    updateSize();
-                }
-
-                render();
-            };
-
             canvas.onmousemove = e => {
                 state.mx = e.clientX;
                 state.my = e.clientY;
@@ -1206,6 +1186,10 @@ ${mats}
             };
 
             canvas.onmouseup = e => {
+                if (e.which === 2 || panMode) {
+                    state.panStart = null;
+                }
+
                 if (state.quickStart && state.select) {
                     const [mx, my] = mouse();
                     const cells = fillRectangle(state.quickStart.x, state.quickStart.y, mx, my);
