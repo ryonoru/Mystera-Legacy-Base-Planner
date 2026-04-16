@@ -430,7 +430,7 @@
             right: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
             z-index: 100;
         }
 
@@ -438,14 +438,14 @@
             background: #242424;
             border: 1px solid #444444;
             border-radius: 6px;
-            padding: 10px;
+            padding: 6px;
             display: flex;
             justify-content: center;
         }
 
         #pan-control button {
-            width: 40px;
-            height: 40px;
+            width: 28px;
+            height: 28px;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -466,8 +466,8 @@
         }
 
         #pan-control button img {
-            width: 24px;
-            height: 24px;
+            width: 16px;
+            height: 16px;
             display: block;
         }
 
@@ -475,15 +475,15 @@
             background: #242424;
             border: 1px solid #444444;
             border-radius: 6px;
-            padding: 10px;
+            padding: 6px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
 
         #zoom-control button {
-            width: 40px;
-            height: 40px;
+            width: 28px;
+            height: 28px;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -500,8 +500,8 @@
         }
 
         #zoom-control button img {
-            width: 24px;
-            height: 24px;
+            width: 16px;
+            height: 16px;
             display: block;
         }
     </style>
@@ -672,7 +672,7 @@
             {cat: "Farming", name: "Lettuce", spr: 75, img: 75, build: true, mats: {lettuce_seed: 1}},
             {cat: "Farming", name: "Tomato", spr: 76, img: 76, build: true, mats: {tomato_seed: 1}},
 
-            // ── Flowers ─────────────────────────────────────────────
+            // ── Flowers ──────────────────���──────────────────────────
             {cat: "Flowers", name: "Flower 1", spr: 84, img: 84, build: true, mats: {flower_seed: 1}},
             {cat: "Flowers", name: "Flower 2", spr: 85, img: 85, build: true, mats: {flower_seed: 1}},
             {cat: "Flowers", name: "Flower 3", spr: 86, img: 86, build: true, mats: {flower_seed: 1}},
@@ -1152,7 +1152,6 @@ ${mats}
                 e.preventDefault();
                 const [mx, my] = mouse();
 
-                // ✅ MOVER MAPA COM BOTÃO DO MEIO OU PAN MODE ATIVO
                 if (e.which === 2 || (e.which === 1 && panMode)) {
                     state.panStart = {x: state.mx, y: state.my, stateX: state.x, stateY: state.y};
                     return;
@@ -1178,7 +1177,6 @@ ${mats}
                 state.mx = e.clientX;
                 state.my = e.clientY;
 
-                // ✅ ARRASTAR MAPA COM BOTÃO DO MEIO OU PAN MODE
                 if (state.panStart) {
                     const dx = e.clientX - state.panStart.x;
                     const dy = e.clientY - state.panStart.y;
@@ -1191,7 +1189,6 @@ ${mats}
             };
 
             canvas.onmouseup = e => {
-                // ✅ SOLTAR BOTÃO DO MEIO OU PAN MODE
                 if (e.which === 2 || panMode) {
                     state.panStart = null;
                 }
@@ -1349,7 +1346,7 @@ ${mats}
 
             // ── ZOOM CONTROLS ──────────────────────────
             document.getElementById("zoom-in").onclick = () => {
-                state.zoom *= 1.2; // Aumenta 20%
+                state.zoom *= 1.15;
                 const width = state.zoom / canvas.width * 2;
                 const height = state.zoom / canvas.height * -2;
                 gl.uniform4f(gl.getUniformLocation(program, "state"), state.x, state.y, width, height);
@@ -1357,7 +1354,7 @@ ${mats}
             };
 
             document.getElementById("zoom-out").onclick = () => {
-                state.zoom = Math.max(state.zoom * (1 / 1.2), 4); // Diminui 20%
+                state.zoom = Math.max(state.zoom * (1 / 1.15), 4);
                 const width = state.zoom / canvas.width * 2;
                 const height = state.zoom / canvas.height * -2;
                 gl.uniform4f(gl.getUniformLocation(program, "state"), state.x, state.y, width, height);
