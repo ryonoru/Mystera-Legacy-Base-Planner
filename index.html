@@ -1145,6 +1145,33 @@ ${mats}
                 render();
             };
 
+            let panMode = false;
+
+            canvas.onmousedown = e => {
+                e.preventDefault();
+                const [mx, my] = mouse();
+
+                if (e.which === 2 || (e.which === 1 && panMode)) {
+                    state.panStart = {x: state.mx, y: state.my, stateX: state.x, stateY: state.y};
+                    return;
+                }
+
+                if (state.shift) {
+                    state.quickStart = {x: mx, y: my};
+                } else if (e.which === 1) {
+                    place();
+                } else if (e.which === 3) {
+                    const key = add(mx, my);
+                    delete build[key];
+                    delete floor[key];
+                    delete heightMap[key];
+                    worker.postMessage({floor, build});
+                    updateSize();
+                }
+
+                render();
+            };
+
             canvas.onmousedown = e => {
                 e.preventDefault();
                 const [mx, my] = mouse();
